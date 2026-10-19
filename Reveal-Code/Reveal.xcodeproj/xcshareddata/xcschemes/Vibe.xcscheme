@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D08E17262EB61DFE007749B8"
-               BuildableName = "Vibe.app"
-               BlueprintName = "Vibe"
-               ReferencedContainer = "container:Vibe.xcodeproj">
+               BuildableName = "Reveal.app"
+               BlueprintName = "Reveal"
+               ReferencedContainer = "container:Reveal.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -36,9 +36,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D08E17332EB61E02007749B8"
-               BuildableName = "VibeTests.xctest"
-               BlueprintName = "VibeTests"
-               ReferencedContainer = "container:Vibe.xcodeproj">
+               BuildableName = "RevealTests.xctest"
+               BlueprintName = "RevealTests"
+               ReferencedContainer = "container:Reveal.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -47,9 +47,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D08E173D2EB61E02007749B8"
-               BuildableName = "VibeUITests.xctest"
-               BlueprintName = "VibeUITests"
-               ReferencedContainer = "container:Vibe.xcodeproj">
+               BuildableName = "RevealUITests.xctest"
+               BlueprintName = "RevealUITests"
+               ReferencedContainer = "container:Reveal.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -69,9 +69,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D08E17262EB61DFE007749B8"
-            BuildableName = "Vibe.app"
-            BlueprintName = "Vibe"
-            ReferencedContainer = "container:Vibe.xcodeproj">
+            BuildableName = "Reveal.app"
+            BlueprintName = "Reveal"
+            ReferencedContainer = "container:Reveal.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -86,9 +86,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D08E17262EB61DFE007749B8"
-            BuildableName = "Vibe.app"
-            BlueprintName = "Vibe"
-            ReferencedContainer = "container:Vibe.xcodeproj">
+            BuildableName = "Reveal.app"
+            BlueprintName = "Reveal"
+            ReferencedContainer = "container:Reveal.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
@@ -97,6 +97,7 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
+      customArchiveName = "Reveal"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

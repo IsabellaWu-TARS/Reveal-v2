@@ -1,0 +1,56 @@
+资料来源与版权声明
+英文圣经
+本应用所引用的英文圣经经文，部分摘录自 World English Bible（WEB）。
+World English Bible（WEB）为公有领域（Public Domain）译本，可自由使用、复制、修改及传播，无需额外授权。
+来源：
+https://worldenglish.bible
+中文圣经
+本应用所引用的中文圣经经文，部分摘录自 Open Translation Bible（开放翻译圣经）中文版。
+版权 © Open Translation Bible Contributors
+采用 Creative Commons Attribution-ShareAlike 4.0 International（CC BY-SA 4.0）许可协议发布。
+根据该许可协议，使用者可以分享及改编相关内容，但须注明出处，并以相同许可协议发布衍生作品。
+来源：
+https://github.com/OpenTranslationBible/open-bible
+许可协议：
+https://creativecommons.org/licenses/by-sa/4.0/
+版权归属
+本应用包含来自以下译本的圣经内容：
+• World English Bible（WEB）— 公有领域（Public Domain）
+• Open Translation Bible 中文版 — CC BY-SA 4.0
+相关版权及许可归原版权所有者及贡献者所有。
+原创内容
+本应用中的灵修内容、反思问题、学习笔记、界面设计、图标、标识、插图及其他原创内容，均由 Reveal 团队制作或依法使用，不属于上述圣经译本内容。
+免责声明
+本应用旨在提供圣经阅读、学习与灵修辅助服务。圣经经文版权归其各自译本及授权方所有。
+如发现版权归属或引用信息有误，请联系我们进行更正。
+版权所有
+World English Bible（WEB）：Public Domain
+Open Translation Bible：CC BY-SA 4.0
+© Reveal. 应用原创内容版权所有。
+
+
+
+
+Sources & Licenses
+English Bible Text
+Scripture quotations marked "WEB" are taken from the World English Bible (WEB).
+The World English Bible is a Public Domain translation of the Holy Bible and may be freely used, copied, and distributed.
+Source:
+https://worldenglish.bible
+Chinese Bible Text
+Chinese Scripture quotations are taken from the Open Translation Bible (Chinese Edition).
+Copyright © Open Translation Bible Contributors.
+Licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0).
+You are free to share and adapt this material provided that appropriate credit is given and any derivative works are distributed under the same license.
+Source:
+https://github.com/OpenTranslationBible/open-bible
+License:
+https://creativecommons.org/licenses/by-sa/4.0/
+Attribution
+This application includes Bible text from the World English Bible (Public Domain) and the Open Translation Bible (CC BY-SA 4.0).
+Original Content
+All devotionals, reflections, study questions, user interface designs, graphics, logos, and other original content are created by Reveal and are not part of the Bible translations cited above.
+Copyright
+World English Bible (WEB): Public Domain.
+Open Translation Bible: Licensed under CC BY-SA 4.0.
+© Reveal. All original app content reserved by their respective owners.”

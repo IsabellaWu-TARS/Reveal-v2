@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "description": "Reveal 卡片内容数据：经文用「索引」接 API，问题与行动中英分开存放。",
+  "cards": [
+    {
+      "id": "john-3-16",
+      "reference": {
+        "book": "John",
+        "chapter": 3,
+        "verse": 16
+      },
+      "en": {
+        "question": "How does knowing God's love change the way you live today?",
+        "action": "Share God's love with someone who needs encouragement today."
+      },
+      "zh": {
+        "question": "认识神的爱如何改变你今日的生活？"
+        "action": "今天与需要鼓励的人分享神的爱。"
+      }
+    },
+    {
+      "id": "proverbs-3-5-6",
+      "reference": {
+        "book": "Proverbs",
+        "chapter": 3,
+        "startVerse": 5,
+        "endVerse": 6
+      },
+      "en": {
+        "question": "Where are you relying on your own understanding instead of trusting God?",
+        "action": "Choose one decision to surrender to God's wisdom today."
+      },
+      "zh": {
+        "question": "你在哪些地方依靠自己的理解而不是信靠神？",
+        "action": "选择今天的一个决定，将它交托给神的智慧。"
+      }
+    },
+    {
+      "id": "psalm-23-1",
+      "reference": {
+        "book": "Psalms",
+        "chapter": 23,
+        "verse": 1
+      },
+      "en": {
+        "question": "In what areas of your life do you need to trust God as your shepherd?",
+        "action": "Write down one worry and surrender it to God's care."
+      },
+      "zh": {
+        "question": "在你生活的哪些方面，你需要信靠神作为你的牧者？",
+        "action": "写下你的一个忧虑，将它交托给神的看顾。"
+      }
+    }
+  ]
+}

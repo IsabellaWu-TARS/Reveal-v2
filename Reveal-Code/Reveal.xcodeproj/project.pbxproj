@@ -24,15 +24,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D08E17272EB61DFE007749B8 /* Vibe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vibe.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D08E17342EB61E02007749B8 /* VibeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VibeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D08E173E2EB61E02007749B8 /* VibeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VibeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D08E17272EB61DFE007749B8 /* Reveal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reveal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D08E17342EB61E02007749B8 /* RevealTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RevealTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D08E173E2EB61E02007749B8 /* RevealUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RevealUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D08E17292EB61DFE007749B8 /* Vibe */ = {
+		D08E17292EB61DFE007749B8 /* Reveal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Vibe;
+			path = Reveal;
 			sourceTree = "<group>";
 		};
 		D08E17372EB61E02007749B8 /* VibeTests */ = {
@@ -75,7 +75,7 @@
 		D08E171E2EB61DFD007749B8 = {
 			isa = PBXGroup;
 			children = (
-				D08E17292EB61DFE007749B8 /* Vibe */,
+				D08E17292EB61DFE007749B8 /* Reveal */,
 				D08E17372EB61E02007749B8 /* VibeTests */,
 				D08E17412EB61E02007749B8 /* VibeUITests */,
 				D08E17282EB61DFE007749B8 /* Products */,
@@ -85,9 +85,9 @@
 		D08E17282EB61DFE007749B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D08E17272EB61DFE007749B8 /* Vibe.app */,
-				D08E17342EB61E02007749B8 /* VibeTests.xctest */,
-				D08E173E2EB61E02007749B8 /* VibeUITests.xctest */,
+				D08E17272EB61DFE007749B8 /* Reveal.app */,
+				D08E17342EB61E02007749B8 /* RevealTests.xctest */,
+				D08E173E2EB61E02007749B8 /* RevealUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D08E17262EB61DFE007749B8 /* Vibe */ = {
+		D08E17262EB61DFE007749B8 /* Reveal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D08E17482EB61E02007749B8 /* Build configuration list for PBXNativeTarget "Vibe" */;
+			buildConfigurationList = D08E17482EB61E02007749B8 /* Build configuration list for PBXNativeTarget "Reveal" */;
 			buildPhases = (
 				D08E17232EB61DFE007749B8 /* Sources */,
 				D08E17242EB61DFE007749B8 /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D08E17292EB61DFE007749B8 /* Vibe */,
+				D08E17292EB61DFE007749B8 /* Reveal */,
 			);
-			name = Vibe;
+			name = Reveal;
 			packageProductDependencies = (
 			);
 			productName = Vibe;
-			productReference = D08E17272EB61DFE007749B8 /* Vibe.app */;
+			productReference = D08E17272EB61DFE007749B8 /* Reveal.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D08E17332EB61E02007749B8 /* VibeTests */ = {
+		D08E17332EB61E02007749B8 /* RevealTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D08E174B2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "VibeTests" */;
+			buildConfigurationList = D08E174B2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "RevealTests" */;
 			buildPhases = (
 				D08E17302EB61E02007749B8 /* Sources */,
 				D08E17312EB61E02007749B8 /* Frameworks */,
@@ -133,16 +133,16 @@
 			fileSystemSynchronizedGroups = (
 				D08E17372EB61E02007749B8 /* VibeTests */,
 			);
-			name = VibeTests;
+			name = RevealTests;
 			packageProductDependencies = (
 			);
 			productName = VibeTests;
-			productReference = D08E17342EB61E02007749B8 /* VibeTests.xctest */;
+			productReference = D08E17342EB61E02007749B8 /* RevealTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		D08E173D2EB61E02007749B8 /* VibeUITests */ = {
+		D08E173D2EB61E02007749B8 /* RevealUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D08E174E2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "VibeUITests" */;
+			buildConfigurationList = D08E174E2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "RevealUITests" */;
 			buildPhases = (
 				D08E173A2EB61E02007749B8 /* Sources */,
 				D08E173B2EB61E02007749B8 /* Frameworks */,
@@ -156,11 +156,11 @@
 			fileSystemSynchronizedGroups = (
 				D08E17412EB61E02007749B8 /* VibeUITests */,
 			);
-			name = VibeUITests;
+			name = RevealUITests;
 			packageProductDependencies = (
 			);
 			productName = VibeUITests;
-			productReference = D08E173E2EB61E02007749B8 /* VibeUITests.xctest */;
+			productReference = D08E173E2EB61E02007749B8 /* RevealUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -171,7 +171,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					D08E17262EB61DFE007749B8 = {
 						CreatedOnToolsVersion = 26.0.1;
@@ -186,12 +186,13 @@
 					};
 				};
 			};
-			buildConfigurationList = D08E17222EB61DFD007749B8 /* Build configuration list for PBXProject "Vibe" */;
+			buildConfigurationList = D08E17222EB61DFD007749B8 /* Build configuration list for PBXProject "Reveal" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = D08E171E2EB61DFD007749B8;
 			minimizedProjectReferenceProxies = 1;
@@ -200,9 +201,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D08E17262EB61DFE007749B8 /* Vibe */,
-				D08E17332EB61E02007749B8 /* VibeTests */,
-				D08E173D2EB61E02007749B8 /* VibeUITests */,
+				D08E17262EB61DFE007749B8 /* Reveal */,
+				D08E17332EB61E02007749B8 /* RevealTests */,
+				D08E173D2EB61E02007749B8 /* RevealUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +259,12 @@
 /* Begin PBXTargetDependency section */
 		D08E17362EB61E02007749B8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D08E17262EB61DFE007749B8 /* Vibe */;
+			target = D08E17262EB61DFE007749B8 /* Reveal */;
 			targetProxy = D08E17352EB61E02007749B8 /* PBXContainerItemProxy */;
 		};
 		D08E17402EB61E02007749B8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D08E17262EB61DFE007749B8 /* Vibe */;
+			target = D08E17262EB61DFE007749B8 /* Reveal */;
 			targetProxy = D08E173F2EB61E02007749B8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -274,6 +275,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -327,6 +329,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -337,6 +340,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -383,6 +387,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -396,6 +401,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FXNYZLP43Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -429,6 +435,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FXNYZLP43Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -471,7 +478,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vibe.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vibe";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Reveal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Reveal";
 			};
 			name = Debug;
 		};
@@ -492,7 +499,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vibe.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vibe";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Reveal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Reveal";
 			};
 			name = Release;
 		};
@@ -511,7 +518,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Vibe;
+				TEST_TARGET_NAME = Reveal;
 			};
 			name = Debug;
 		};
@@ -530,14 +537,14 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Vibe;
+				TEST_TARGET_NAME = Reveal;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D08E17222EB61DFD007749B8 /* Build configuration list for PBXProject "Vibe" */ = {
+		D08E17222EB61DFD007749B8 /* Build configuration list for PBXProject "Reveal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D08E17462EB61E02007749B8 /* Debug */,
@@ -546,7 +553,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D08E17482EB61E02007749B8 /* Build configuration list for PBXNativeTarget "Vibe" */ = {
+		D08E17482EB61E02007749B8 /* Build configuration list for PBXNativeTarget "Reveal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D08E17492EB61E02007749B8 /* Debug */,
@@ -555,7 +562,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D08E174B2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "VibeTests" */ = {
+		D08E174B2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "RevealTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D08E174C2EB61E02007749B8 /* Debug */,
@@ -564,7 +571,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D08E174E2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "VibeUITests" */ = {
+		D08E174E2EB61E02007749B8 /* Build configuration list for PBXNativeTarget "RevealUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D08E174F2EB61E02007749B8 /* Debug */,

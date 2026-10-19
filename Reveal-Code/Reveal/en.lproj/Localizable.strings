@@ -1,0 +1,143 @@
+/* Reveal – English */
+
+/* Splash */
+"splash_welcome" = "Welcome To Reveal Marshal";
+
+/* Appearance */
+"settings_appearance_system" = "System";
+"settings_appearance_light" = "Light";
+"settings_appearance_dark" = "Dark";
+"settings_appearance" = "Appearance";
+"settings_language" = "Language";
+"settings_reminders" = "Daily Reminders";
+"settings_reminder_time" = "Reminder Time";
+"settings_title" = "Settings";
+"settings_save" = "Save Changes";
+"settings_support_message" = "If you feel moved to support the Mashal team, please contact us.";
+
+/* Home card */
+"today_verse_title" = "Today's Verse";
+"today_verse_sample" = "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.";
+"tap_reveal_reflection" = "Tap to reveal reflection";
+"reflection_title" = "Reflection";
+"key_lesson" = "Key Lesson";
+"reflect" = "Reflect";
+"action" = "Action";
+"reflection_key_lesson" = "God's love is unconditional and eternal, demonstrated through the ultimate sacrifice.";
+"reflection_question" = "How does knowing God's love change the way you live today?";
+"reflection_action" = "Share God's love with someone who needs encouragement today.";
+"tap_to_return" = "Tap to return";
+"card_action_standard" = "How can I live according to this verse today?";
+
+/* Notes */
+"note_button" = "Note";
+"note_title" = "My Reflection";
+"note_autosave_hint" = "Your note saves automatically.";
+"note_placeholder" = "Write your thoughts here…";
+
+/* Share */
+"share_title" = "Share";
+"share_description" = "Share today's verse card or your reflection note with friends.";
+"share_front_card" = "Share Front of Card";
+"share_back_card" = "Share Back of Card";
+"share_note" = "Share Today's Note";
+"share_all" = "Share Both Cards";
+"share_no_note" = "You haven't written a note today yet.";
+
+/* Bible */
+"full_passage_title" = "Full Passage";
+"choose_book_verse" = "Choose book & verse";
+"jump_to_verse" = "Jump to verse";
+"done" = "Done";
+
+/* Calendar */
+"calendar_title" = "Favorites & Calendar";
+"calendar_favorites" = "Favorites";
+"calendar_notes" = "Notes";
+"calendar_by_year" = "Calendar";
+"calendar_my_favorites" = "My Favorite Verses";
+"calendar_my_notes" = "My Notes";
+"calendar_no_favorites" = "Star verses on the home card to see them here.";
+"calendar_no_notes" = "Tap Note on the home screen to write your first reflection.";
+"year" = "Year";
+
+/* Onboarding */
+"onboarding_skip" = "Skip";
+"onboarding_next" = "Next";
+"onboarding_back" = "Back";
+"onboarding_start" = "Get Started";
+"onboarding_language" = "Choose your language";
+"onboarding_intro" = "Your daily verse card — tap to reveal reflection and action.";
+"onboarding_intro_verse" = "Don't you be afraid, for I am with you. Don't be dismayed, for I am your God. I will strengthen you. Yes, I will help you. Yes, I will uphold you with the right hand of my righteousness.";
+"onboarding_intro_ref" = "Isaiah 41:10";
+"onboarding_intro_question" = "What fears or worries can you surrender to God today?";
+"onboarding_step_1" = "On the front, you'll see today's verse in black text — God's word for you.";
+"onboarding_step_2" = "Tap the card to flip it and reveal reflection questions and action.";
+"onboarding_step_3" = "Tap the Bible icon to read the full passage.";
+"onboarding_step_4" = "Tap Calendar to revisit favorites and notes by date.";
+"onboarding_step_5" = "Tap the star on the card to save your favorite verses.";
+"onboarding_step_notes" = "Tap Note below the card to write reflections — saved automatically and viewable in Calendar.";
+"onboarding_step_6" = "Tap Share to send cards or notes to friends. Start your journey now!";
+
+/* Settings – Contact */
+"settings_contact_us" = "Contact Us";
+"contact_help_line" = "If you got any problems please contact us";
+"contact_instagram" = "Instagram";
+"contact_twitter" = "X (Twitter)";
+
+/* Settings – About */
+"settings_about_bible_sources" = "About Bible Sources";
+"settings_bible_source_en" = "The English Bible text is from the World English Bible (WEB), which is in the public domain.";
+"settings_bible_source_zh" = "中文圣经译本：和合本 (Chinese Union Version), also in the public domain.";
+
+/* Notifications */
+"notif_daily_title" = "Reveal";
+"notif_daily_body" = "Reveal your verse of the day";
+
+/* Card 1 - John 3:16 */
+"card_1_verse" = "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.";
+"card_1_question" = "How does knowing God's love change the way you live today?";
+
+/* Card 2 - Psalm 23:1 */
+"card_2_verse" = "The Lord is my shepherd, I lack nothing.";
+"card_2_question" = "In what areas of your life do you need to trust God as your shepherd?";
+
+/* Card 3 - Philippians 4:13 */
+"card_3_verse" = "I can do all this through him who gives me strength.";
+"card_3_question" = "What challenge are you facing that requires God's strength?";
+
+/* Card 4 - Proverbs 3:5-6 */
+"card_4_verse" = "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.";
+"card_4_question" = "Where are you relying on your own understanding instead of trusting God?";
+
+/* Card 5 - Matthew 6:26 */
+"card_5_verse" = "Look at the birds of the air; they do not sow or reap or store away in barns, and yet your heavenly Father feeds them. Are you not much more valuable than they?";
+"card_5_question" = "What worry is preventing you from trusting God's provision?";
+
+/* Card 6 - Isaiah 40:31 */
+"card_6_verse" = "But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.";
+"card_6_question" = "How can you wait on the Lord when you feel weary?";
+
+/* Card 7 - Romans 8:28 */
+"card_7_verse" = "And we know that in all things God works for the good of those who love him, who have been called according to his purpose.";
+"card_7_question" = "What difficult situation can you trust God is working for your good?";
+
+/* Card 8 - Jeremiah 29:11 */
+"card_8_verse" = "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.";
+"card_8_question" = "How does knowing God has good plans for you change your perspective?";
+
+/* Card 9 - Ephesians 2:8-9 */
+"card_9_verse" = "For it is by grace you have been saved, through faith—and this is not from yourselves, it is the gift of God—not by works, so that no one can boast.";
+"card_9_question" = "How does receiving salvation as a gift change how you treat others?";
+
+/* Card 10 - Psalm 46:1 */
+"card_10_verse" = "God is our refuge and strength, an ever-present help in trouble.";
+"card_10_question" = "Where do you need God to be your refuge this week?";
+
+/* Card 11 - Joshua 1:9 */
+"card_11_verse" = "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.";
+"card_11_question" = "What step of obedience do you need courage to take?";
+
+/* Card 12 - 1 Corinthians 13:4 */
+"card_12_verse" = "Love is patient, love is kind. It does not envy, it does not boast, it is not proud.";
+"card_12_question" = "In which relationship can you show more patience or kindness today?";
