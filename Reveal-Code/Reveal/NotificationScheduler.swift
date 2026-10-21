@@ -1,5 +1,5 @@
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 
 /// Schedules the user's daily-verse reminder notifications.
 ///
@@ -20,7 +20,6 @@ enum NotificationScheduler {
 
     static let dailyReminderIdentifier           = "reveal.dailyReminder"
     private static let daySpecificReminderPrefix = "reveal.daySpecific."
-    private static let previewCharLimit: Int     = 110
 
     // MARK: - Setup
 
@@ -83,55 +82,58 @@ enum NotificationScheduler {
 
     // MARK: - Scheduling
 
-    /// Schedule the daily reminder. The notification body shows the
-    /// verse preview for each target calendar day, so opening the
-    /// notification feels meaningful instead of a generic nudge.
+    /// Schedule the daily reminder.
+    ///
+    /// One **repeating** calendar request (`repeats: true`) rather than a
+    /// rolling queue of one-shot requests:
+    ///   • a repeating trigger fires at the next matching hour:minute, so a
+    ///     reminder enabled at 09:00 for 20:30 still fires *today*;
+    ///   • it never expires — the old 7-day queue went silent after a week
+    ///     unless the user reopened Settings;
+    ///   • it survives app termination, so nothing has to re-schedule on launch.
     ///
     /// - Parameters:
     ///   - hour: 0–23 hour at which the reminder fires each day.
     ///   - minute: 0–59 minute at which the reminder fires each day.
-    ///   - appLanguage: `"en"` or `"zh-Hans"`, used to pick verse + body text.
-    ///   - daysAhead: how many days into the future to schedule (default 7).
+    ///   - appLanguage: `"en"` or `"zh-Hans"`, used to pick the copy.
     static func scheduleDailyReminder(
         hour: Int,
         minute: Int,
-        appLanguage: String,
-        daysAhead: Int = 7
+        appLanguage: String
     ) async {
         guard await requestAuthorizationIfNeeded() else { return }
 
-        // Always start by removing any old per-day previews so we don't
-        // stack duplicates when the user changes their reminder time.
+        // Remove anything previously queued (including legacy per-day ids) so
+        // changing the time replaces the reminder instead of stacking.
         await cancelAllOwnedAsync()
 
         let isZH = (appLanguage == "zh-Hans")
-        let title = isZH ? "今日经文 · 默想" : "Today's Verse · Reflection"
-        let previewIntro = isZH ? "明日经文：" : "Tomorrow's verse: "
+        let content = UNMutableNotificationContent()
+        content.title = isZH ? "与神相遇的时刻" : "A Moment with God"
+        content.body = isZH
+            ? "静下心来，留一点时间给神。今天，祂的话语正等候着你。"
+            : "Take a moment to be still. God’s Word is waiting for you today."
+        content.sound = reminderSound()
+        content.userInfo = ["language": appLanguage]
 
-        let calendar = Calendar.current
-        let center = UNUserNotificationCenter.current()
+        var components = DateComponents()
+        components.hour = hour
+        components.minute = minute
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(
+            identifier: dailyReminderIdentifier,
+            content: content,
+            trigger: trigger
+        )
+        try? await UNUserNotificationCenter.current().add(request)
+    }
 
-        for offset in 1...max(1, daysAhead) {
-            guard let targetDate = calendar.date(byAdding: .day, value: offset, to: Date()) else { continue }
-            // P15: wrap the @MainActor-isolated `DailyCardStore.shared` read
-            // in `MainActor.assumeIsolated` to silence the Swift 6 actor-
-            // isolation warning. We're already on the main actor (the whole
-            // `NotificationScheduler` enum is `@MainActor`), so this is
-            // purely a hint to the compiler — runtime behaviour is
-            // identical.
-            guard let card = MainActor.assumeIsolated({ DailyCardStore.shared.previewCard(for: targetDate) }) else { continue }
-            await scheduleOne(
-                date: targetDate,
-                hour: hour,
-                minute: minute,
-                title: title,
-                body: previewIntro + trimmed(card.verseText(language: appLanguage)),
-                cardId: card.id,
-                language: appLanguage,
-                center: center,
-                calendar: calendar
-            )
+    /// The bundled chime, or the system sound if the asset is missing.
+    private static func reminderSound() -> UNNotificationSound {
+        if Bundle.main.url(forResource: "reveal_chime", withExtension: "caf") != nil {
+            return UNNotificationSound(named: UNNotificationSoundName("reveal_chime.caf"))
         }
+        return .default
     }
 
     // MARK: - Helpers
@@ -148,55 +150,5 @@ enum NotificationScheduler {
         if !ids.isEmpty {
             center.removePendingNotificationRequests(withIdentifiers: ids)
         }
-    }
-
-    private static func scheduleOne(
-        date: Date,
-        hour: Int,
-        minute: Int,
-        title: String,
-        body: String,
-        cardId: String,
-        language: String,
-        center: UNUserNotificationCenter,
-        calendar: Calendar
-    ) async {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-        content.userInfo = ["cardId": cardId, "language": language]
-
-        var components = calendar.dateComponents([.year, .month, .day], from: date)
-        components.hour = hour
-        components.minute = minute
-
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        let request = UNNotificationRequest(
-            identifier: identifier(for: date, calendar: calendar),
-            content: content,
-            trigger: trigger
-        )
-
-        do {
-            try await center.add(request)
-        } catch {
-            // Skip this date; continue scheduling the rest.
-        }
-    }
-
-    /// Deterministic id — same date → same id, so re-scheduling replaces
-    /// the existing request rather than duplicating it.
-    private static func identifier(for date: Date, calendar: Calendar) -> String {
-        let comps = calendar.dateComponents([.year, .month, .day], from: date)
-        let y = comps.year  ?? 0
-        let m = comps.month ?? 0
-        let d = comps.day   ?? 0
-        return String(format: "%@%04d-%02d-%02d", daySpecificReminderPrefix, y, m, d)
-    }
-
-    private static func trimmed(_ text: String) -> String {
-        guard text.count > previewCharLimit else { return text }
-        return String(text.prefix(previewCharLimit)) + "…"
     }
 }

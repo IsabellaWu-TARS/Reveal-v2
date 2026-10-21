@@ -15,6 +15,12 @@ struct CardBackView: View {
     let style: CardStyle
     let onFavorite: () -> Void
     let isFavorite: Bool
+    /// Hidden when the card is rendered for sharing, so the exported PNG
+    /// doesn't bake in the favourite star. Default keeps the live card as is.
+    var showsFavoriteButton: Bool = true
+    /// Same idea for the "Tap to return" hint — it's an instruction to the
+    /// person holding the phone, not part of the artwork.
+    var showsReturnHint: Bool = true
 
     /// Main heading on the back of the card. Per the new card-back
     /// layout reference the heading is a single word — "Reflection"
@@ -99,19 +105,23 @@ struct CardBackView: View {
                 Spacer(minLength: 0)
 
                 // ── Bottom: "Tap to return" hint, centred.
-                Text(tapToReturn)
-                    .font(.custom("Georgia", size: 12))
-                    .foregroundColor(.white.opacity(0.55))
-                    .tracking(2)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.bottom, 28)
+                if showsReturnHint {
+                    Text(tapToReturn)
+                        .font(.custom("Georgia", size: 12))
+                        .foregroundColor(.white.opacity(0.55))
+                        .tracking(2)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.bottom, 28)
+                }
             }
 
             // Favorite ⭐ — same position as front, so it doesn't
             // visually move during the flip.
             .overlay(alignment: .topTrailing) {
-                FavoriteButton(isFavorite: isFavorite, onTap: onFavorite)
-                    .padding(14)
+                if showsFavoriteButton {
+                    FavoriteButton(isFavorite: isFavorite, onTap: onFavorite)
+                        .padding(14)
+                }
             }
         }
     }

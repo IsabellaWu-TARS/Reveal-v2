@@ -13,9 +13,16 @@ struct SettingsView: View {
     @Binding var currentPage: AppPage
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var dailyCardStore: DailyCardStore
-    @State private var notificationsEnabled = true
+    // Persisted: the reminder used to be `@State` with a default of `true`,
+    // so the toggle showed ON after every launch while nothing was actually
+    // scheduled (and permission had never been requested). Default is now
+    // "off" — the switch tells the truth, and the choice survives relaunches.
+    @AppStorage("dailyReminderEnabled") private var notificationsEnabled = false
+    @AppStorage("dailyReminderHour") private var reminderHour = 20
+    @AppStorage("dailyReminderMinute") private var reminderMinute = 0
     @State private var reminderTime = Date()
     @State private var showAboutSources = false
+    @State private var showPrivacyPolicy = false
 
     var body: some View {
         // P13: Pull the Settings cards toward the centre so the frame reads
@@ -105,34 +112,43 @@ struct SettingsView: View {
                                                 Image(systemName: "bell.fill").foregroundColor(Design.accent)
                                                 Text(dailyCardStore.appLanguage == "zh-Hans" ? "每日提醒" : "Daily Reminders")
                                                     .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                                    // The toggle squeezes this label on narrower
+                                                    // phones and it wrapped onto two lines.
+                                                    .lineLimit(1)
+                                                    .minimumScaleFactor(0.85)
                                             }
+                                            .layoutPriority(1)
                                             Spacer()
                                             Toggle("", isOn: $notificationsEnabled)
                                                 .tint(Design.accent)
                                                 .onChange(of: notificationsEnabled) { _, newValue in
                                                     if newValue {
-                                                        let hour = Calendar.current.component(.hour, from: reminderTime)
-                                                        let minute = Calendar.current.component(.minute, from: reminderTime)
-                                                        Task {
-                                                            await NotificationScheduler.scheduleDailyReminder(hour: hour, minute: minute, appLanguage: dailyCardStore.appLanguage)
-                                                        }
+                                                        scheduleReminder(language: dailyCardStore.appLanguage)
                                                     } else {
                                                         NotificationScheduler.cancelDailyReminder()
                                                     }
                                                 }
                                         }
                                         if notificationsEnabled {
-                                            DatePicker("", selection: $reminderTime, displayedComponents: .hourAndMinute)
-                                                .datePickerStyle(.compact)
-                                                .tint(Design.accent)
-                                                .foregroundColor(Design.accent)
-                                                .onChange(of: reminderTime) { _, newValue in
-                                                    let hour = Calendar.current.component(.hour, from: newValue)
-                                                    let minute = Calendar.current.component(.minute, from: newValue)
-                                                    Task {
-                                                        await NotificationScheduler.scheduleDailyReminder(hour: hour, minute: minute, appLanguage: dailyCardStore.appLanguage)
+                                            // Keep the time chip inside the card: the
+                                            // compact picker has its own width, so it is
+                                            // pinned to its ideal size and right-aligned
+                                            // instead of being stretched by the VStack.
+                                            HStack(spacing: 12) {
+                                                Text(dailyCardStore.appLanguage == "zh-Hans" ? "提醒时间" : "Reminder time")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.secondary)
+                                                Spacer(minLength: 8)
+                                                DatePicker("", selection: $reminderTime, displayedComponents: .hourAndMinute)
+                                                    .labelsHidden()
+                                                    .datePickerStyle(.compact)
+                                                    .fixedSize()
+                                                    .tint(Design.accent)
+                                                    .foregroundColor(Design.accent)
+                                                    .onChange(of: reminderTime) { _, _ in
+                                                        scheduleReminder(language: dailyCardStore.appLanguage)
                                                     }
-                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -167,10 +183,28 @@ struct SettingsView: View {
                                         }
                                     }
                                 }
+
+                                // Privacy Policy
+                                // Guideline 5.1.1 requires a privacy-policy URL
+                                // in App Store Connect. Having the text reachable
+                                // from inside the app as well is what a reviewer
+                                // expects to find in an app that stores notes.
+                                SettingsCard {
+                                    Button(action: { showPrivacyPolicy = true }) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "hand.raised.fill").foregroundColor(Design.accent)
+                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "隐私政策" : "Privacy Policy")
+                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                            Spacer()
+                                            Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(Design.accent.opacity(0.6))
+                                        }
+                                    }
+                                }
                             }
                             .frame(maxWidth: contentMaxW)
                             Spacer(minLength: 0)
                         }
+                        .frame(maxWidth: .infinity)
                         .padding(.top, 20)
                     }
                     .padding(.bottom, 40)
@@ -179,6 +213,36 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showAboutSources) {
             AboutBibleSourcesSheet(language: dailyCardStore.appLanguage)
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicySheet(language: dailyCardStore.appLanguage)
+        }
+        .onAppear {
+            // Restore the saved reminder time into the picker.
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+            comps.hour = reminderHour
+            comps.minute = reminderMinute
+            if let restored = Calendar.current.date(from: comps) { reminderTime = restored }
+
+            // If it's enabled, re-assert the repeating request. Cheap and
+            // idempotent — same identifier, so it replaces rather than stacks.
+            if notificationsEnabled { scheduleReminder(language: dailyCardStore.appLanguage) }
+        }
+        .onChange(of: dailyCardStore.appLanguage) { _, newLanguage in
+            // Re-schedule so the notification copy matches the chosen language.
+            guard notificationsEnabled else { return }
+            scheduleReminder(language: newLanguage)
+        }
+    }
+
+    /// Schedules (or re-schedules) the daily reminder with the persisted time.
+    private func scheduleReminder(language: String) {
+        let hour = Calendar.current.component(.hour, from: reminderTime)
+        let minute = Calendar.current.component(.minute, from: reminderTime)
+        reminderHour = hour
+        reminderMinute = minute
+        Task {
+            await NotificationScheduler.scheduleDailyReminder(hour: hour, minute: minute, appLanguage: language)
         }
     }
 
@@ -197,10 +261,31 @@ struct SettingsView: View {
 
 struct SettingsCard<Content: View>: View {
     let content: Content
+    @Environment(\.colorScheme) private var colorScheme
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) { content }
+        // In dark mode, use translucent BLACK (so it's visible against the
+        // dark AppBackground) instead of translucent white (which blends
+        // invisibly into the dark background).
+        let bgFill: Color = (colorScheme == .dark)
+            ? Color.white.opacity(0.10)
+            : Color.white.opacity(0.65)
+        let borderStroke: Color = (colorScheme == .dark)
+            ? Color.white.opacity(0.15)
+            : Color.black.opacity(0.08)
+        return VStack(alignment: .leading, spacing: 0) { content }
             .padding(18)
-            .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.07)).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.1), lineWidth: 1)))
+            // Cards used to size to their content, so "Contact Us" (short
+            // link rows) came out narrower than the others and looked
+            // off-centre. Every card now spans the column.
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(bgFill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(borderStroke, lineWidth: 1)
+                    )
+            )
     }
 }

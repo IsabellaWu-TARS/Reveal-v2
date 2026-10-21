@@ -2,7 +2,9 @@
 //  SplashView.swift
 //  Reveal
 //
-//  Split out of the original single-file VibeApp.swift.
+//  Launch screen: the watercolour leaf (the app-icon art) pops in, breathes
+//  like a loading indicator, then hands over to the app. The backdrop follows
+//  the system appearance — warm paper in light mode, near-black in dark mode.
 //
 
 import SwiftUI
@@ -14,69 +16,75 @@ struct SplashView: View {
     let isFirstLaunch: Bool
     let onFirstLaunchComplete: () -> Void
 
-    @State private var opacityText: Double = 0
-    @State private var scaleText: CGFloat = 0.7
-    @State private var opacityIcon: Double = 0
-    @State private var scaleIcon: CGFloat = 0.7
+    @Environment(\.colorScheme) private var colorScheme
+
+    // Animation drivers.
+    @State private var leafAppeared = false     // pop-in from small + fade
+    @State private var leafBreathing = false    // the "loading" pulse
+    @State private var isLeaving = false        // fade-out into the app
+
+    private var isDark: Bool { colorScheme == .dark }
+
+    /// Final vertical position of the leaf: 46pt above dead centre.
+    private static let restingOffset: CGFloat = -46
+
+    /// Warm paper in light mode, near-black in dark mode.
+    private var backdrop: LinearGradient {
+        isDark
+            ? LinearGradient(colors: [Color(hex: "141310"), Color(hex: "0B0A08")],
+                             startPoint: .top, endPoint: .bottom)
+            : LinearGradient(colors: [Color(hex: "FFFBF0"), Color(hex: "F5EDDC")],
+                             startPoint: .top, endPoint: .bottom)
+    }
+
+    /// Soft halo behind the leaf so it sits on the page instead of floating.
+    private var haloColor: Color {
+        Color(hex: "A2A569").opacity(isDark ? 0.16 : 0.18)
+    }
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            backdrop.ignoresSafeArea()
 
-            if isFirstLaunch {
-                // First screen: welcome text
-                VStack(spacing: 16) {
-                    Text("Welcome To")
-                        .font(.system(size: 28, weight: .light))
-                        .foregroundColor(Design.accent)
-                    Text("Reveal Mashal")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(Color(hex: "2E7D32"))
-                }
-                .opacity(opacityText)
-                .scaleEffect(scaleText)
-            } else {
-                // Normal splash: app icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 40)
-                        .fill(LinearGradient(colors: [Color(hex: "E8F5E9"), Color(hex: "C8E6C9")], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 160, height: 160)
-                        .overlay(RoundedRectangle(cornerRadius: 40).stroke(Design.accent.opacity(0.5), lineWidth: 2))
-                        .shadow(color: Color(hex: "4CAF50").opacity(0.2), radius: 20)
+            Circle()
+                .fill(haloColor)
+                .frame(width: 320, height: 320)
+                .blur(radius: 60)
+                .opacity(leafAppeared ? 1 : 0)
 
-                    LeafShape()
-                        .fill(LinearGradient(colors: [Design.accent, Color(hex: "B8C48A"), Color(hex: "A8B89A")], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 80, height: 110)
-                        .overlay(LeafVeinsShape().stroke(Color.white.opacity(0.9), lineWidth: 1.5))
-                        .overlay(Text("R").font(.custom("Georgia", size: 44)).fontWeight(.bold).foregroundColor(Color.white.opacity(0.95)).offset(x: 0, y: -6))
-                }
-                .opacity(opacityIcon)
-                .scaleEffect(scaleIcon)
-            }
+            // The leaf alone — no wordmark. Sits a touch above true centre so
+            // it reads as "resting" rather than floating mid-screen.
+            Image("SplashLeaf")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 230, height: 230)
+                .shadow(color: Color.black.opacity(isDark ? 0.45 : 0.12), radius: 24, x: 0, y: 12)
+                // Pop in: small + transparent → full size, then breathe.
+                .scaleEffect(leafAppeared ? (leafBreathing ? 1.05 : 0.98) : 0.55)
+                .opacity(leafAppeared ? 1 : 0)
+                .offset(y: leafAppeared ? Self.restingOffset : Self.restingOffset + 20)
+                // Leaving: lifts and fades as the app appears.
+                .scaleEffect(isLeaving ? 1.08 : 1)
+                .opacity(isLeaving ? 0 : 1)
         }
-        .onAppear {
-            if isFirstLaunch {
-                withAnimation(.easeOut(duration: 0.8)) { opacityText = 1.0; scaleText = 1.0 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    withAnimation(.easeInOut(duration: 0.5)) { opacityText = 0; scaleText = 1.1 }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        withAnimation(.easeOut(duration: 0.8)) { opacityIcon = 1.0; scaleIcon = 1.0 }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            withAnimation(.easeInOut(duration: 0.5)) { opacityIcon = 0; scaleIcon = 0.9 }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                onFirstLaunchComplete()
-                                withAnimation { showSplash = false }
-                            }
-                        }
-                    }
-                }
-            } else {
-                withAnimation(.easeOut(duration: 0.6)) { opacityIcon = 1.0; scaleIcon = 1.0 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation(.easeInOut(duration: 0.5)) { opacityIcon = 0; scaleIcon = 0.9 }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { showSplash = false }
-                }
+        .task {
+            // 1 — pop in.
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.62)) {
+                leafAppeared = true
             }
+
+            // 2 — breathe while the app warms up (gentle 0.98 ↔ 1.05 loop).
+            try? await Task.sleep(for: .milliseconds(520))
+            withAnimation(.easeInOut(duration: 1.15).repeatForever(autoreverses: true)) {
+                leafBreathing = true
+            }
+
+            // 3 — hold long enough to read as "loading", then hand over.
+            try? await Task.sleep(for: .milliseconds(isFirstLaunch ? 1500 : 1350))
+            if isFirstLaunch { onFirstLaunchComplete() }
+            withAnimation(.easeInOut(duration: 0.45)) { isLeaving = true }
+            try? await Task.sleep(for: .milliseconds(420))
+            showSplash = false
         }
     }
 }

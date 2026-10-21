@@ -14,7 +14,7 @@ struct AppBackground: View {
     private var isDark: Bool { colorScheme == .dark }
 
     var body: some View {
-        ZStack {
+        Group {
             if isDark {
                 LinearGradient(colors: [Color(hex: "1E1E1E"), Color(hex: "111111")], startPoint: .top, endPoint: .bottom)
             } else {
@@ -23,6 +23,15 @@ struct AppBackground: View {
                 // on parchment" feel.
                 Design.paperBackground
             }
+        }
+        // The decorative leaf lives in an OVERLAY, not as a sibling inside a
+        // ZStack. At 450pt it is wider than any iPhone, and a ZStack sizes
+        // itself to its widest child — that one image was stretching every page
+        // to 450pt on a 402pt screen and shifting the whole UI 24pt left
+        // (clipped calendar pills, cards hanging off the right edge, share and
+        // note overlays off-centre). Overlays never contribute to layout, so
+        // the page stays exactly the size of the screen on every device.
+        .overlay {
             Image(systemName: "leaf.fill")
                 .resizable().aspectRatio(contentMode: .fit).frame(width: 450, height: 450)
                 .foregroundColor(Design.accent.opacity(isDark ? 0.04 : 0.06))

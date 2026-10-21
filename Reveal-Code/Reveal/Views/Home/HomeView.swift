@@ -11,6 +11,7 @@ import UIKit
 
 struct HomeView: View {
     @Binding var currentPage: AppPage
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var dailyCardStore: DailyCardStore
     @EnvironmentObject var shareManager: ShareManager
@@ -69,6 +70,15 @@ struct HomeView: View {
             // card, regardless of device width.
             let cornerBarWidth: CGFloat = cardW
 
+            // P22: 4 round corner buttons are ~10pt bigger than the
+            // design-wide `Design.cornerButtonSize` so they read more
+            // prominently on the home screen. The SF Symbol scales
+            // proportionally (18 → 22) so the icon stays centred
+            // visually. The top/bottom bar height follows the same
+            // bump so the buttons aren't clipped.
+            let homeCornerButtonSize: CGFloat = Design.cornerButtonSize + 10  // 54 / 58
+            let _: CGFloat  = 22
+
             ZStack {
                 AppBackground()
 
@@ -86,7 +96,7 @@ struct HomeView: View {
                         withAnimation { currentPage = .calendar }
                     }
                 }
-                .frame(width: cornerBarWidth, height: Design.cornerButtonSize)
+                .frame(width: cornerBarWidth, height: homeCornerButtonSize)
                 .position(x: screenW / 2, y: topBarY)
 
                 // ── Bottom bar — fixed at screen bottom, never overlaps card ──
@@ -116,14 +126,18 @@ struct HomeView: View {
                             Text(dailyCardStore.appLanguage == "zh-Hans" ? "笔记" : "Notes")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .foregroundColor(Design.paperInk)
+                        .foregroundColor(Design.accent) // P19: matching green so the centre Notes pill matches the four corner icons.
                         .frame(width: noteW, height: noteH)
                         .background(
+                            // P21 dark-mode branch: same translucent white
+                            // (`white.opacity(0.1)`) used by ScripturePage's
+                            // BackCircleButton, so the pill stays in the
+                            // same visual family as the 4 corner chips in
+                            // dark mode.
                             Capsule()
-                                .fill(Design.paperChipFill)
-                                .overlay(
-                                    Capsule().stroke(Color.white.opacity(0.7), lineWidth: 1)
-                                )
+                                .fill(colorScheme == .dark
+                                      ? Color.white.opacity(0.1)
+                                      : Design.paperChipFill)
                                 .shadow(color: Design.cardShadowColor, radius: 6, x: 0, y: 3)
                         )
                     }
@@ -136,7 +150,7 @@ struct HomeView: View {
                         withAnimation { currentPage = .settings }
                     }
                 }
-                .frame(width: cornerBarWidth, height: max(noteH, Design.cornerButtonSize))
+                .frame(width: cornerBarWidth, height: max(noteH, homeCornerButtonSize))
                 .position(x: screenW / 2, y: bottomBarY)
 
                 // Card – centred between the two bars. The bars are at fixed
@@ -153,18 +167,71 @@ struct HomeView: View {
                 }
 
                 // ── Overlays (above everything) ─────────────────────────────
-                if notesStore.isNoteEditorPresented {
-                    notesExpandOverlay
-                }
+                // The note editor is presented as a sheet (see .sheet below):
+                // inside the page ZStack it inherited the page's mis-sized
+                // coordinate space and ran off the right edge.
 
+                // P20: back to an inline overlay, now that the page ZStack
+                // is the right width. A full-screen cover paints its own
+                // backdrop, which read as "the whole app goes black" behind
+                // the share card; this draws the card straight over the live
+                // home screen with no dim.
                 if shareManager.showShareOptions {
-                    shareOptionsOverlay
+                    ZStack {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .ignoresSafeArea()
+                            .onTapGesture { shareManager.showShareOptions = false }
+
+                        if let card = dailyCardStore.currentCard {
+                            ShareOptionsCard(
+                                card: card,
+                                language: dailyCardStore.appLanguage,
+                                noteText: notesStore.noteText,
+                                onSelect: { mode in
+                                    shareManager.showShareOptions = false
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        performShare(mode: mode, card: card)
+                                    }
+                                },
+                                onClose: { shareManager.showShareOptions = false }
+                            )
+                            .frame(width: max(screenW - Design.horizontalPadding * 2, 0))
+                            .frame(maxHeight: screenH * 0.78)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                    }
+                    .frame(width: screenW, height: screenH)
+                    .zIndex(2)
                 }
             }
         }
         .onAppear {
             cardDayIndex = Calendar.current.component(.day, from: Date())
             dailyCardStore.markTodayViewed()
+        }
+        // The note editor used to be a hand-rolled overlay inside the page
+        // ZStack; that ZStack's coordinate space did not match the screen, so
+        // the card hung off the right edge. A sheet is anchored to the window,
+        // so the width and the keyboard insets are always correct.
+        .fullScreenCover(isPresented: $notesStore.isNoteEditorPresented, onDismiss: { notesStore.save() }) {
+            ZStack {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .onTapGesture { notesStore.isNoteEditorPresented = false }
+
+                if let card = dailyCardStore.currentCard {
+                    NoteEditorCard(
+                        noteText: $notesStore.noteText,
+                        card: card,
+                        language: dailyCardStore.appLanguage,
+                        onClose: { notesStore.isNoteEditorPresented = false }
+                    )
+                    .padding(.horizontal, Design.horizontalPadding)
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .presentationBackground(.clear)
         }
     }
 
@@ -173,18 +240,29 @@ struct HomeView: View {
     // language as the corner buttons so the screen reads as one consistent
     // set of controls, just repositioned so they never fight with the card
     // for touch.
+    //
+    // P19: foreground flipped from `Design.paperInk` to `Design.accent`
+    // so the SF Symbols (`book.fill` / `calendar` / `square.and.arrow.up`
+    // / `gearshape.fill`) render in the brand green on every HomeScreen
+    // corner button. Background stays cream — only the icon recolours.
+    //
+    // P21: dark-mode background swap. In light mode the button keeps the
+    // original `Design.paperChipFill` cream tint; in dark mode it switches
+    // to the same translucent white (`white.opacity(0.1)`) used by
+    // ScripturePage's `BackCircleButton`. Matching the back-chevron's
+    // visual weight keeps every HomeScreen control on the same design
+    // family as the rest of the app.
     private func outerActionButton(icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(Design.paperInk)
-                .frame(width: Design.cornerButtonSize, height: Design.cornerButtonSize)
+                .font(.system(size: 22, weight: .medium)) // P22: icon scales with the larger button (18 → 22).
+                .foregroundColor(Design.accent)
+                .frame(width: Design.cornerButtonSize + 10, height: Design.cornerButtonSize + 10)
                 .background(
                     Circle()
-                        .fill(Design.paperChipFill)
-                        .overlay(
-                            Circle().stroke(Color.white.opacity(0.6), lineWidth: 1)
-                        )
+                        .fill(colorScheme == .dark
+                              ? Color.white.opacity(0.1)
+                              : Design.paperChipFill)
                         .shadow(color: Design.cardShadowColor, radius: 6, x: 0, y: 3)
                 )
         }
@@ -257,49 +335,6 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Notes Expand Overlay
-    // P12 fix: the NoteEditorCard used to render at its intrinsic height
-    // (≈380–420pt), and when the iOS keyboard popped up it pushed content
-    // past the top safe area / clipped under the status bar. We now wrap
-    // the card in a GeometryReader and cap it to 62% of the visible
-    // height, so:
-    //   • on small phones (SE / 13 mini) it never overflows the screen,
-    //   • when the keyboard rises, the card shrinks to fit instead of
-    //     clipping, and
-    //   • the visual is a touch smaller overall, as requested.
-    private var notesExpandOverlay: some View {
-        GeometryReader { geo in
-            let capH = geo.size.height * 0.62
-            ZStack {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        notesStore.save()
-                        withAnimation(Design.springAnim) { notesStore.isNoteEditorPresented = false }
-                    }
-
-                if let card = dailyCardStore.currentCard {
-                    NoteEditorCard(
-                        noteText: $notesStore.noteText,
-                        card: card,
-                        language: dailyCardStore.appLanguage,
-                        onClose: {
-                            notesStore.save()
-                            withAnimation(Design.springAnim) { notesStore.isNoteEditorPresented = false }
-                        }
-                    )
-                    .padding(.horizontal, 20)
-                    .frame(maxHeight: capH)
-                    .transition(.asymmetric(
-                        insertion: .scale(scale: 0.85).combined(with: .opacity),
-                        removal: .scale(scale: 0.85).combined(with: .opacity)
-                    ))
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-        }
-    }
-
     // MARK: - Share Options Overlay
     // P14 fix: same pattern as P12 Notes fix. ShareOptionsCard's intrinsic
     // height (≈327pt) could overflow on compact phones (e.g. 13 mini, SE).
@@ -313,41 +348,6 @@ struct HomeView: View {
     // alignment above it tried to absorb the padding. We now belt-and-
     // brace it with an explicit HStack { Spacer; card; Spacer } so SwiftUI
     // is forced to split the remaining width into two EQUAL halves.
-    private var shareOptionsOverlay: some View {
-        GeometryReader { geo in
-            let capH = geo.size.height * 0.62
-            let capW = geo.size.width * 0.88
-            ZStack {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture { shareManager.showShareOptions = false }
-
-                if let card = dailyCardStore.currentCard {
-                    HStack(spacing: 0) {
-                        Spacer(minLength: 0)
-                        ShareOptionsCard(
-                            card: card,
-                            language: dailyCardStore.appLanguage,
-                            noteText: notesStore.noteText,
-                            onSelect: { mode in
-                                shareManager.showShareOptions = false
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    performShare(mode: mode, card: card)
-                                }
-                            },
-                            onClose: { shareManager.showShareOptions = false }
-                        )
-                        .frame(maxWidth: capW)
-                        .frame(maxHeight: capH)
-                        Spacer(minLength: 0)
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-        }
-    }
-
     private func performShare(mode: ShareManager.ShareMode, card: RevealCard) {
         let lang = dailyCardStore.appLanguage
         let shareText: String
@@ -364,103 +364,74 @@ struct HomeView: View {
             shareText = "\"\(card.verseText(language: lang))\"\n— \(card.referenceText(language: lang))\n\nReflect: \(card.questionText(language: lang))\n\nAction: \(card.actionText(language: lang))"
         }
 
-        // Export as PNG image
-        let renderer = ImageRenderer(content: shareCardImage(mode: mode, card: card, lang: lang))
-        renderer.scale = 3.0
-        if let image = renderer.uiImage {
-            let activityVC = UIActivityViewController(activityItems: [image, shareText], applicationActivities: nil)
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = windowScene.windows.first?.rootViewController {
-                rootVC.present(activityVC, animated: true)
+        // What goes into the share sheet depends on the option:
+        //   verse      → the card's front face as a PNG
+        //   reflection → the card's back face as a PNG
+        //   note       → plain text
+        //   full set   → both faces + the text (verse, reflection, note)
+        let style = CardStyle.forCardId(card.id)
+        var items: [Any] = []
+
+        switch mode {
+        case .verse:
+            if let front = renderCardPNG(front: true, card: card, style: style, lang: lang) {
+                items.append(front)
             }
-        } else {
-            // Fallback: share text only
-            let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootVC = windowScene.windows.first?.rootViewController {
-                rootVC.present(activityVC, animated: true)
+        case .reflection:
+            if let back = renderCardPNG(front: false, card: card, style: style, lang: lang) {
+                items.append(back)
             }
+        case .note:
+            items.append(shareText)
+        case .fullSet:
+            if let front = renderCardPNG(front: true, card: card, style: style, lang: lang) {
+                items.append(front)
+            }
+            if let back = renderCardPNG(front: false, card: card, style: style, lang: lang) {
+                items.append(back)
+            }
+            items.append(shareText)
         }
+
+        // If rendering failed for any reason, still share something useful.
+        if items.isEmpty { items = [shareText] }
+        presentShareSheet(items: items)
     }
 
-    @ViewBuilder
-    private func shareCardImage(mode: ShareManager.ShareMode, card: RevealCard, lang: String) -> some View {
-        VStack(spacing: 0) {
-            switch mode {
-            case .verse, .reflection, .fullSet:
-                VStack(spacing: 12) {
-                    if mode == .verse || mode == .fullSet {
-                        VStack(spacing: 8) {
-                            Text("Reveal Mashal")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(Design.accent)
-                            Text("\"\(card.verseText(language: lang))\"")
-                                .font(.custom("Georgia", size: 16))
-                                .foregroundColor(Color(hex: "2A2A2A"))
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(6)
-                            Text(card.referenceText(language: lang))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(hex: "4A4A4A"))
-                        }
-                        .padding(24)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "FAF7F2"))
-                                .shadow(color: Color.black.opacity(0.1), radius: 10)
-                        )
-                    }
-                    if mode == .reflection || mode == .fullSet {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "questionmark.circle.fill").foregroundColor(Design.accent)
-                                Text(lang == "zh-Hans" ? "反思" : "Reflect")
-                                    .font(.system(size: 13, weight: .semibold)).foregroundColor(Color(hex: "4A4A4A"))
-                            }
-                            Text(card.questionText(language: lang))
-                                .font(.system(size: 13)).foregroundColor(Color(hex: "3A3A3A")).lineSpacing(4)
-                            Divider()
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.circle.fill").foregroundColor(Design.accent)
-                                Text(lang == "zh-Hans" ? "行动" : "Action")
-                                    .font(.system(size: 13, weight: .semibold)).foregroundColor(Color(hex: "4A4A4A"))
-                            }
-                            Text(card.actionText(language: lang))
-                                .font(.system(size: 13)).foregroundColor(Color(hex: "3A3A3A")).lineSpacing(4)
-                        }
-                        .padding(20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "FAF7F2"))
-                                .shadow(color: Color.black.opacity(0.1), radius: 10)
-                        )
-                    }
-                }
-            case .note:
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(card.referenceText(language: lang))
-                        .font(.system(size: 12, weight: .medium)).foregroundColor(Design.accent)
-                    Text(notesStore.noteText.isEmpty ? (lang == "zh-Hans" ? "（暂无笔记）" : "(No notes yet)") : notesStore.noteText)
-                        .font(.system(size: 14)).foregroundColor(Color(hex: "2A2A2A")).lineSpacing(4)
-                }
-                .padding(20)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(hex: "FAF7F2"))
-                        .shadow(color: Color.black.opacity(0.1), radius: 10)
-                )
+    /// Renders the real card view (the same one on screen) to a PNG, with the
+    /// favourite button hidden so the export looks like the artwork, not a
+    /// screenshot of the UI.
+    @MainActor
+    private func renderCardPNG(front: Bool, card: RevealCard, style: CardStyle, lang: String) -> UIImage? {
+        let content = Group {
+            if front {
+                CardFrontView(card: card, language: lang, style: style,
+                              onFavorite: {}, isFavorite: false, showsFavoriteButton: false)
+            } else {
+                CardBackView(card: card, language: lang, style: style,
+                             onFavorite: {}, isFavorite: false,
+                             showsFavoriteButton: false, showsReturnHint: false)
             }
-            // App watermark
-            HStack(spacing: 4) {
-                Image(systemName: "leaf.fill").font(.system(size: 10)).foregroundColor(Design.accent)
-                Text("Reveal Mashal").font(.system(size: 10, weight: .medium)).foregroundColor(Design.accent.opacity(0.7))
-            }
-            .padding(.top, 8)
         }
-        .padding(20)
-        .background(Color(hex: "FFFAE3"))
+        // Same 0.63 aspect as the on-screen card, at 3x for a crisp export.
+        .frame(width: 360, height: 572)
+
+        let renderer = ImageRenderer(content: content)
+        renderer.scale = 3.0
+        renderer.isOpaque = false
+        return renderer.uiImage
     }
+
+    /// Presents from the top-most view controller. While the share overlay was
+    /// an inline view the root controller was free; now that the overlay is a
+    /// full-screen cover, presenting from the root would fail with
+    /// "already presenting", so walk down to whatever is actually on top.
+    private func presentShareSheet(items: [Any]) {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              var top = scene.windows.first?.rootViewController else { return }
+        while let presented = top.presentedViewController { top = presented }
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        top.present(activityVC, animated: true)
+    }
+
 }

@@ -12,7 +12,19 @@ import UIKit
 struct AboutBibleSourcesSheet: View {
     let language: String
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     private var isZH: Bool { language == "zh-Hans" }
+    private var isDark: Bool { colorScheme == .dark }
+
+    private var pageBg: Color {
+        isDark ? Color(hex: "161618") : Color(hex: "FAF7F2")
+    }
+    private var titleColor: Color {
+        isDark ? Color.white : Color(hex: "2A2A2A")
+    }
+    private var bodyColor: Color {
+        isDark ? Color(hex: "C8C2B8") : Color(hex: "4A4A4A")
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,12 +34,14 @@ struct AboutBibleSourcesSheet: View {
                 }
                 .padding(24)
             }
-            .background(Color(hex: "FAF7F2"))
-            .navigationTitle(isZH ? "资料来源与版权声明" : "Sources & Licenses")
-            .navigationBarTitleDisplayMode(.inline)
+            .background(pageBg)
+            .navigationBarTitle(
+                Text(isZH ? "资料来源与版权声明" : "Sources & Licenses"),
+                displayMode: .inline
+            )
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }.foregroundColor(Design.accent)
+                    Button(isZH ? "完成" : "Done") { dismiss() }.foregroundColor(Design.accent)
                 }
             }
         }
@@ -94,10 +108,10 @@ struct AboutBibleSourcesSheet: View {
     }
 
     private func sectionTitle(_ text: String) -> some View {
-        Text(text).font(.system(size: 15, weight: .bold)).foregroundColor(Color(hex: "2A2A2A")).padding(.top, 8)
+        Text(text).font(.system(size: 15, weight: .bold)).foregroundColor(titleColor).padding(.top, 8)
     }
     private func bodyText(_ text: String) -> some View {
-        Text(text).font(.system(size: 14)).foregroundColor(Color(hex: "4A4A4A")).lineSpacing(4)
+        Text(text).font(.system(size: 14)).foregroundColor(bodyColor).lineSpacing(4)
     }
     private func linkText(_ text: String) -> some View {
         Text(text).font(.system(size: 13)).foregroundColor(Design.accent)

@@ -18,14 +18,17 @@ struct BiblePassageView: View {
     // P16 puts a real API back for the part the card cannot carry: the whole
     // chapter, so the verse can be read in context.
     //
-    // What you see on this screen:
+    // What you see on this screen (P18 — trimmed):
     //   • Reference (e.g. "Genesis 1:1, WEB")
     //   • Verse text (Georgia serif, paper-cream surface) — straight from the
     //     bundled JSON, so it renders instantly and works offline
-    //   • Reflection question
-    //   • Action prompt
     //   • The full chapter, fetched from bible.helloao.org
     //     (eng_web / cmn_cu1) with the card's verse highlighted.
+    //
+    // P18 removed the reflection question + action prompt from this screen —
+    // they live on the home card, and repeating them here pushed the chapter
+    // out of view. The bottom "Back to Home" button was also removed since
+    // the header chevron already does exactly that job.
     //
     // The local card is the offline floor: if the fetch fails the verse is
     // still on screen, with a retry for the chapter below it.
@@ -33,6 +36,17 @@ struct BiblePassageView: View {
     @State private var chapter: BibleChapter?
     @State private var isLoadingChapter = false
     @State private var chapterError: String?
+    @Environment(\.colorScheme) private var colorScheme
+
+    // The passage used to paint the cream "paper" surface in every colour
+    // scheme, so dark mode showed a bright card on a dark page. These follow
+    // the system appearance instead.
+    private var isDark: Bool { colorScheme == .dark }
+    private var cardSurface: Color { isDark ? Color(hex: "1C1B18") : Color(hex: "FAF3E4") }
+    private var cardInk: Color { isDark ? Color(hex: "E6E0D4") : Color(hex: "3D2E1F") }
+    private var cardInkDeep: Color { isDark ? Color(hex: "F4EFE3") : Color(hex: "2B1F12") }
+    private var cardMuted: Color { isDark ? Color(hex: "A39A8E") : Color(hex: "7A6852") }
+    private var cardHint: Color { isDark ? Color(hex: "6F6860") : Color(hex: "A89880") }
 
     private var isZH: Bool { dailyCardStore.appLanguage == "zh-Hans" }
 
@@ -43,22 +57,26 @@ struct BiblePassageView: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             AppBackground()
 
             VStack(spacing: 0) {
-                // Header
+                // Header — three columns (back | title | spacer) with
+                // fixed-width placeholders so the title sits dead-centre
+                // regardless of Design.iconButtonSize.
                 HStack {
                     BackCircleButton { withAnimation { currentPage = .home } }
                     Spacer()
-                    Text(dailyCardStore.appLanguage == "zh-Hans" ? "经文" : "Full Passage")
+                    Text(dailyCardStore.appLanguage == "zh-Hans" ? "经文" : "Scripture")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     Spacer()
                     Color.clear.frame(width: Design.iconButtonSize, height: Design.iconButtonSize)
                 }
                 .padding(.horizontal, Design.horizontalPadding)
-                .padding(.top, 16)
+                .padding(.top, 20)
 
                 ScrollViewReader { proxy in
                 ScrollView {
@@ -67,47 +85,24 @@ struct BiblePassageView: View {
                             // Reference header (e.g. "Genesis 1:1, WEB")
                             Text(card.referenceWithTranslation(language: dailyCardStore.appLanguage))
                                 .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(Design.paperInk)
+                                .foregroundColor(cardInk)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
 
                             // Verse body — pulled directly from the local
                             // bilingual JSON (no network, no spinner).
                             Text(card.verseText(language: dailyCardStore.appLanguage))
-                                .font(.custom("Georgia", size: 19))
-                                .foregroundColor(Design.paperInkDeep)
+                                .font(.custom("Georgia", size: 17))
+                                .foregroundColor(cardInkDeep)
                                 .lineSpacing(10)
                                 .textSelection(.enabled)
 
                             Divider().padding(.vertical, 8)
 
-                            // Reflection question
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "questionmark.circle.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(Design.accent)
-                                Text(card.questionText(language: dailyCardStore.appLanguage))
-                                    .font(.custom("Georgia", size: 15))
-                                    .foregroundColor(Design.paperInk)
-                                    .lineSpacing(6)
-                            }
-
-                            Spacer().frame(height: 8)
-
-                            // Action prompt
-                            HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(Design.accent)
-                                Text(card.actionText(language: dailyCardStore.appLanguage))
-                                    .font(.custom("Georgia", size: 15))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(Design.accent)
-                                    .lineSpacing(6)
-                            }
-
                             chapterSection(card)
                         }
-                        .padding(24)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 28)
                     } else {
                         // No card available — fall back to a soft hint rather
                         // than an empty screen.
@@ -117,17 +112,32 @@ struct BiblePassageView: View {
                                 .foregroundColor(Design.accent.opacity(0.5))
                             Text(dailyCardStore.appLanguage == "zh-Hans" ? "暂无经文" : "No passage available")
                                 .font(.system(size: 14, weight: .light))
-                                .foregroundColor(Design.paperInkHint)
+                                .foregroundColor(cardHint)
                         }
                         .padding(.top, 80)
                     }
                 }
-                .background(RoundedRectangle(cornerRadius: Design.cardRadius).fill(Design.paperCardSurface).shadow(color: Design.cardShadowColor, radius: 16, x: 0, y: 8))
+                .background(RoundedRectangle(cornerRadius: Design.cardRadius).fill(cardSurface).shadow(color: Design.cardShadowColor, radius: 16, x: 0, y: 8))
+                .overlay(alignment: .top) {
+                    // Same idea at the top: the chapter scrolls under the
+                    // header, and a hard cut sliced the top line in half.
+                    LinearGradient(
+                        colors: [cardSurface, cardSurface.opacity(0)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 22)
+                    .allowsHitTesting(false)
+                    .clipShape(UnevenRoundedRectangle(
+                        topLeadingRadius: Design.cardRadius,
+                        topTrailingRadius: Design.cardRadius
+                    ))
+                }
                 .overlay(alignment: .bottom) {
                     // Text scrolls under the card's bottom edge; fade it into
                     // the paper colour instead of slicing a line in half.
                     LinearGradient(
-                        colors: [Design.paperCardSurface.opacity(0), Design.paperCardSurface],
+                        colors: [cardSurface.opacity(0), cardSurface],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -138,8 +148,18 @@ struct BiblePassageView: View {
                         bottomTrailingRadius: Design.cardRadius
                     ))
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                // Fill first, then inset: the order matters. `.frame` after
+                // `.padding` re-expands the view to the full width, which made
+                // the card bleed to the screen edges and lose its rounded
+                // corners.
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, Design.horizontalPadding)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+                // P18: let the chapter scroll with a little rubber-band at
+                // the ends instead of the hard stop that made dragging feel
+                // like it was "sticking".
+                .scrollBounceBehavior(.basedOnSize)
                 .task(id: chapterKey) { await loadChapter() }
                 // Land on the card's verse instead of the top of the chapter.
                 .onChange(of: chapter) { _, fetched in
@@ -153,11 +173,20 @@ struct BiblePassageView: View {
                 }
                 }
 
-                BackToHomeButton { withAnimation { currentPage = .home } }
-                    .padding(.horizontal, Design.horizontalPadding)
-                    .padding(.top, 16)
-                    .padding(.bottom, 40)
+                // P18: the top back chevron is the only way out now — the
+                // bottom "Back to Home" button duplicated it and ate a whole
+                // band of vertical space, so the passage card ended up with
+                // very little room to read. The leftover pad just gives the
+                // scroll view a little breathing room above the home
+                // indicator.
+                Color.clear.frame(height: 12)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // P19: fill the safe area in both directions. Without
+            // `maxHeight` the column sized to its content and left a dead
+            // band under the card on every device — the "empty top/bottom"
+            // look.
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -199,12 +228,12 @@ struct BiblePassageView: View {
                 Text(isZH ? "整章经文" : "Full Chapter")
                     .font(.custom("Georgia", size: 16))
                     .fontWeight(.semibold)
-                    .foregroundColor(Design.paperInkDeep)
+                    .foregroundColor(cardInkDeep)
                 Spacer()
                 if let chapter {
                     Text(isZH ? "\(chapter.verses.count) 节" : "\(chapter.verses.count) verses")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Design.paperInkHint)
+                        .foregroundColor(cardHint)
                 }
             }
 
@@ -221,25 +250,25 @@ struct BiblePassageView: View {
 
                 Text("\(chapter.bookName) \(chapter.chapterNumber) · " + (isZH ? "新标点和合本" : "World English Bible"))
                     .font(.system(size: 11, weight: .light))
-                    .foregroundColor(Design.paperInkHint)
+                    .foregroundColor(cardHint)
                     .padding(.top, 8)
             } else if isLoadingChapter {
                 HStack(spacing: 10) {
                     ProgressView().controlSize(.small).tint(Design.accent)
                     Text(isZH ? "正在加载整章…" : "Loading chapter…")
                         .font(.system(size: 13, weight: .light))
-                        .foregroundColor(Design.paperInkMuted)
+                        .foregroundColor(cardMuted)
                 }
                 .padding(.vertical, 14)
             } else if let chapterError {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(isZH ? "无法加载整章经文，今日经文仍可离线阅读。" : "Couldn't load the full chapter — today's verse still reads offline.")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Design.paperInkMuted)
+                        .foregroundColor(cardMuted)
                         .lineSpacing(4)
                     Text(chapterError)
                         .font(.system(size: 11, weight: .light))
-                        .foregroundColor(Design.paperInkHint)
+                        .foregroundColor(cardHint)
                     Button {
                         Task { await loadChapter() }
                     } label: {
@@ -267,21 +296,26 @@ struct BiblePassageView: View {
                 Text(heading)
                     .font(.custom("Georgia", size: 12))
                     .italic()
-                    .foregroundColor(Design.paperInkHint)
+                    .foregroundColor(cardHint)
                     .padding(.top, 10)
                     .padding(.bottom, 2)
             }
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("\(verse.number)")
                     .font(.custom("Georgia", size: 11))
-                    .foregroundColor(highlighted ? Design.accent : Design.paperInkHint)
+                    .foregroundColor(highlighted ? Design.accent : cardHint)
                     .frame(width: 20, alignment: .trailing)
                 Text(verse.text)
                     .font(.custom("Georgia", size: highlighted ? 17 : 15))
-                    .foregroundColor(highlighted ? Design.paperInkDeep : Design.paperInkMuted)
+                    .foregroundColor(highlighted ? cardInkDeep : cardMuted)
                     .lineSpacing(5)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .textSelection(.enabled)
+                    // P18: `textSelection` removed here on purpose. Having it
+                    // on every row made the chapter scroll view swallow
+                    // vertical drags and start a text selection instead —
+                    // which is why dragging felt "sticky". Selection is only
+                    // kept on the featured verse at the top of the screen.
+                    .textSelection(.disabled)
             }
             .padding(.vertical, 6)
             .padding(.horizontal, 8)

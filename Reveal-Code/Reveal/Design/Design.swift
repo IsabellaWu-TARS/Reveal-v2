@@ -46,41 +46,42 @@ struct Design {
     /// Footer chip background — translucent cream that mimics a wax seal.
     static let paperChipFill    = Color.white.opacity(0.55)
 
-    // ── BUG FIX (P5): Button sizes were hard-coded (44, 52, 40, etc.) so they
-    // looked correct on iPhone 15 Pro but cramped on the smaller 13 mini and
-    // tiny on the larger 16/17 Pro Max. These helpers return sizes that scale
-    // with the current width / size class, so every screen lays out correctly
-    // on every supported iPhone.
+    // ── Button sizes ────────────────────────────────────────────────────────
+    // These used to be hard-coded (44, 52, 40, …) so they looked right on one
+    // phone and wrong on the others. They now scale off the window width.
     //
-    // P15 (round 2): `UIScreen.main` is `@MainActor` while `Design`'s
-    // `static let` initialiser runs in a `nonisolated` context, so Swift 6
-    // strict-concurrency emits "different actor isolation" warnings here
-    // and for every downstream `screenWidth` reference. We wrap the read
-    // in a small `nonisolated(unsafe)` constant — safe because the device
-    // width is immutable for the session, every read site is just an Int
-    // comparison, and we never mutate `UIScreen` ourselves.
-    nonisolated(unsafe) private static let screenWidth: CGFloat = UIScreen.main.bounds.width
+    // `UIScreen.main` was deprecated in iOS 26, and the old
+    // `nonisolated(unsafe)` workaround around it is no longer needed either:
+    // CGFloat/Bool are Sendable, so a plain `static let` is already safe and
+    // the attribute only produced warnings. The width comes from the active
+    // window scene, with the 402pt reference size as a fallback for the rare
+    // case where no scene exists yet.
+    private static let _screenWidth: CGFloat = {
+        let sceneWidth = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.screen.bounds.width
+        return sceneWidth ?? 402
+    }()
     /// Tiny iPhone class (SE / 13 mini / older 4.7"–5.4" devices).
-    nonisolated(unsafe) static let isCompactWidth: Bool = screenWidth <= 390
+    static let isCompactWidth: Bool = _screenWidth <= 390
     /// Large iPhone class (Plus / Max — 6.5"+).
-    nonisolated(unsafe) static let isLargeScreen: Bool = screenWidth >= 430
+    static let isLargeScreen: Bool = _screenWidth >= 430
 
     /// Standard 44pt tap-target for primary icon buttons (Home / Back / Share / Settings).
-    nonisolated(unsafe) static let iconButtonSize: CGFloat = isLargeScreen ? 52 : 44
+    static let iconButtonSize: CGFloat = isLargeScreen ? 52 : 44
     /// The label that lives under a bottom-bar icon — a bit smaller on compact screens.
-    nonisolated(unsafe) static let bottomBarLabelSize: CGFloat = isCompactWidth ? 9 : 10
+    static let bottomBarLabelSize: CGFloat = isCompactWidth ? 9 : 10
     /// Capsule "Notes" button height.
-    nonisolated(unsafe) static let noteButtonHeight: CGFloat = isLargeScreen ? 56 : 52
+    static let noteButtonHeight: CGFloat = isLargeScreen ? 56 : 52
     /// Default side margin used across screens so the layout is symmetric on
     /// every iPhone width.
-    nonisolated(unsafe) static let horizontalPadding: CGFloat = isLargeScreen ? 32 : 24
+    static let horizontalPadding: CGFloat = isLargeScreen ? 32 : 24
     /// Calendar "weekday letters" + grid spacing.
-    nonisolated(unsafe) static let calendarGridSpacing: CGFloat = isCompactWidth ? 4 : 6
+    static let calendarGridSpacing: CGFloat = isCompactWidth ? 4 : 6
 
-    // ── P8: Unified corner-button size used by all 4 card corners ──────────
-    // Every corner of the card (Bible, Calendar, Share, Settings, Favorite)
-    // uses EXACTLY this same size, so the layout reads as a balanced frame.
-    nonisolated(unsafe) static let cornerButtonSize: CGFloat = isLargeScreen ? 48 : 44
+    /// Unified corner-button size used by all 4 card corners, so the layout
+    /// reads as a balanced frame.
+    static let cornerButtonSize: CGFloat = isLargeScreen ? 48 : 44
 
     // Card gradient palettes
     static let pinkGradient    = [Color(hex: "E8A5A5"), Color(hex: "F5D4D4")]

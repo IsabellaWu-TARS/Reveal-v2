@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import UserNotifications
 @testable import Reveal
 
 struct VibeTests {
@@ -68,6 +69,63 @@ struct VibeTests {
         #expect(chapter.verses.first?.text.contains("ignorant") == true)
         #expect(chapter.verses.last?.text.contains("mute idols") == true)
         #expect(chapter.bookName == "1 Corinthians")
+    }
+
+    /// If the user has the reminder switched on, there must be a repeating
+    /// request queued whose next fire is within the next 24 hours.
+    @Test @MainActor func enabledReminderIsQueuedAndUpcoming() async throws {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: "dailyReminderEnabled") else { return }
+
+        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+            .filter { $0.identifier == NotificationScheduler.dailyReminderIdentifier }
+        #expect(pending.count == 1, "reminder is on but nothing is queued")
+
+        let trigger = pending.first?.trigger as? UNCalendarNotificationTrigger
+        #expect(trigger?.repeats == true, "reminder must repeat daily")
+        if let next = trigger?.nextTriggerDate() {
+            #expect(next.timeIntervalSinceNow < 24 * 3600, "next fire is more than a day away")
+        }
+        #expect(pending.first?.content.sound != nil, "reminder has no sound")
+        #expect(pending.first?.content.title.isEmpty == false)
+        #expect(pending.first?.content.body.isEmpty == false)
+    }
+
+    /// The reminder must exist as real pending requests, with the specified
+    /// copy, in both languages. Requires notification permission — run
+    /// `LayoutAuditTests/testEnableDailyReminder` first.
+    @Test @MainActor func dailyReminderSchedulesLocalizedCopy() async throws {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        #expect(settings.authorizationStatus == .authorized,
+                "notifications not authorized — run testEnableDailyReminder first")
+
+        await NotificationScheduler.scheduleDailyReminder(hour: 20, minute: 30, appLanguage: "en")
+        var pending = await center.pendingNotificationRequests()
+        #expect(pending.count == 1, "expected one repeating request, got \(pending.count)")
+        #expect(pending.first?.content.title == "A Moment with God")
+        #expect(pending.first?.content.body == "Take a moment to be still. God’s Word is waiting for you today.")
+        #expect((pending.first?.trigger as? UNCalendarNotificationTrigger)?.repeats == true,
+                "the reminder must repeat daily, otherwise it goes silent after a week")
+        #expect(pending.first?.content.sound != nil, "reminder must carry a sound")
+
+        await NotificationScheduler.scheduleDailyReminder(hour: 20, minute: 30, appLanguage: "zh-Hans")
+        pending = await center.pendingNotificationRequests()
+        #expect(pending.count == 1, "expected one repeating Chinese request, got \(pending.count)")
+        #expect(pending.first?.content.title == "与神相遇的时刻")
+        #expect(pending.first?.content.body == "静下心来，留一点时间给神。今天，祂的话语正等候着你。")
+
+        // Restore whatever the app itself has persisted, so running the tests
+        // doesn't wipe the user's real reminder off the simulator.
+        center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier))
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: "dailyReminderEnabled") {
+            await NotificationScheduler.scheduleDailyReminder(
+                hour: defaults.integer(forKey: "dailyReminderHour"),
+                minute: defaults.integer(forKey: "dailyReminderMinute"),
+                appLanguage: defaults.string(forKey: "AppLanguage") ?? "en"
+            )
+        }
     }
 
     /// Every book in the cards must resolve to a USFM code, otherwise the

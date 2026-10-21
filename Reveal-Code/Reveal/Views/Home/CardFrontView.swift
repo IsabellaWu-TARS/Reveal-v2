@@ -15,6 +15,9 @@ struct CardFrontView: View {
     let style: CardStyle
     let onFavorite: () -> Void
     let isFavorite: Bool
+    /// Hidden when the card is rendered for sharing, so the exported PNG
+    /// doesn't bake in the favourite star. Default keeps the live card as is.
+    var showsFavoriteButton: Bool = true
 
     /// Localised scripture reference, e.g. "Mark 12:13" /
     /// "马可福音 12:13". Driven by the actual card data
@@ -90,8 +93,10 @@ struct CardFrontView: View {
             // doesn't "jump" if the card flips. The button widget
             // itself is unchanged.
             .overlay(alignment: .topTrailing) {
-                FavoriteButton(isFavorite: isFavorite, onTap: onFavorite)
-                    .padding(14)
+                if showsFavoriteButton {
+                    FavoriteButton(isFavorite: isFavorite, onTap: onFavorite)
+                        .padding(14)
+                }
             }
         }
     }
