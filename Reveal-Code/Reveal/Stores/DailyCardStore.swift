@@ -25,8 +25,6 @@ final class DailyCardStore: ObservableObject {
     // the home screen on, so the calendar can accurately mark days with scripture.
     @Published private(set) var viewedDates: Set<String> = []
 
-    private var seededRNG: SeededRNG = SeededRNG(seed: 1)
-    private var seed: UInt64 = 0
     private var currentIndex: Int = 0
 
     /// Returns the date that `todayDateKey` was last refreshed to. Used by
@@ -37,13 +35,12 @@ final class DailyCardStore: ObservableObject {
     private init() {
         todayDateKey = Self.todayDateKey()
         lastRefreshDateKey = todayDateKey
-        seed = Self.dailySeed()
-        seededRNG = SeededRNG(seed: seed)
         appLanguage = UserDefaults.standard.string(forKey: "AppLanguage") ?? "en"
         loadFavorites()
         loadViewedDates()
         allCards = Self.loadCards()
-        advanceToTodayCard()
+        refreshCardForToday()
+        observeMidnight()
     }
 
     func setLanguage(_ language: String) {
@@ -61,9 +58,18 @@ final class DailyCardStore: ObservableObject {
         guard currentKey != lastRefreshDateKey else { return }
         todayDateKey = currentKey
         lastRefreshDateKey = currentKey
-        seed = Self.dailySeed()
-        seededRNG = SeededRNG(seed: seed)
-        advanceToTodayCard()
+        refreshCardForToday()
+    }
+
+    /// Swap the card when the calendar day rolls over while the app is open.
+    private func observeMidnight() {
+        NotificationCenter.default.addObserver(
+            forName: .NSCalendarDayChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.refreshCardForToday() }
+        }
     }
 
     /// Mark the current date as viewed (called from HomeView.onAppear).
@@ -81,22 +87,83 @@ final class DailyCardStore: ObservableObject {
         viewedDates.contains(Self.dateKey(for: date))
     }
 
-    private func advanceToTodayCard() {
+    /// Shows the card for **today**, and keeps showing it until the calendar
+    /// day rolls over.
+    ///
+    /// The card is derived from the date itself, not from a random draw, so:
+    ///   • reopening the app on the same day never changes the card;
+    ///   • at midnight the day key changes and the next card is shown;
+    ///   • every install sees the same card on the same date.
+    ///
+    /// The deck is walked in a fixed shuffled order, so a card
+    /// only repeats after every card has been used.
+    func refreshCardForToday() {
         guard !allCards.isEmpty else { return }
-        if seenCardIds.count >= allCards.count {
-            seenCardIds.removeAll()
-            seed = Self.dailySeed()
-            seededRNG = SeededRNG(seed: seed)
+
+        let key = Self.todayDateKey()
+        todayDateKey = key
+        lastRefreshDateKey = key
+
+        // Same day, and the stored card still exists → nothing to do.
+        let defaults = UserDefaults.standard
+        if defaults.string(forKey: Self.cardDayKeyDefaultsKey) == key,
+           let storedId = defaults.string(forKey: Self.cardIdDefaultsKey),
+           let idx = allCards.firstIndex(where: { $0.id == storedId }) {
+            currentCard = allCards[idx]
+            currentIndex = idx
+            mirrorState = .front
+            return
         }
-        var gen = seededRNG
-        let unseenIndices = allCards.indices.filter { !seenCardIds.contains(allCards[$0].id) }
-        guard !unseenIndices.isEmpty else { return }
-        let idx = unseenIndices[Int.random(in: 0..<unseenIndices.count, using: &gen)]
+
+        // New day (or first launch): pick the card for this date.
+        let idx = Self.cardIndex(forDayKey: key, count: allCards.count)
         currentCard = allCards[idx]
-        seenCardIds.insert(allCards[idx].id)
         currentIndex = idx
+        seenCardIds.insert(allCards[idx].id)
+        defaults.set(key, forKey: Self.cardDayKeyDefaultsKey)
+        defaults.set(allCards[idx].id, forKey: Self.cardIdDefaultsKey)
         mirrorState = .front
         transitionAngle = 0
+    }
+
+    // MARK: - Date → card
+
+    private static let cardDayKeyDefaultsKey = "CurrentCardDayKey"
+    private static let cardIdDefaultsKey = "CurrentCardId"
+
+    /// Fixed deck order: a permutation of 0..<count built from a constant
+    /// seed, computed once per card count. Walking it by day ordinal means a
+    /// card never repeats until every card has been shown.
+    private static let deckSeed: UInt64 = 0x5EED_0BEE_F00D_1234
+    private static var deckCache: [Int] = []
+    private static var deckCacheCount = 0
+
+    private static func deck(count: Int) -> [Int] {
+        if deckCacheCount == count, deckCache.count == count { return deckCache }
+        var rng = SeededRNG(seed: deckSeed)
+        deckCache = Array(0..<count).shuffled(using: &rng)
+        deckCacheCount = count
+        return deckCache
+    }
+
+    /// Number of days since 2001-01-01 for a `yyyy-MM-dd` key. Stable across
+    /// launches and time zones because it is built from the key itself.
+    private static func dayOrdinal(forDayKey key: String) -> Int {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        guard let date = f.date(from: key) else { return 0 }
+        var g = Calendar(identifier: .gregorian)
+        g.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        let days = g.dateComponents([.day], from: Date(timeIntervalSince1970: 978_307_200), to: date).day ?? 0
+        return max(0, days)
+    }
+
+    /// Deterministic deck position for a day key.
+    private static func cardIndex(forDayKey key: String, count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        let ordinal = dayOrdinal(forDayKey: key)
+        return deck(count: count)[ordinal % count]
     }
 
     func flip() {
@@ -115,10 +182,6 @@ final class DailyCardStore: ObservableObject {
     }
 
     func isFavorite(_ cardId: String) -> Bool { favoriteIds.contains(cardId) }
-
-    func nextCard() {
-        advanceToTodayCard()
-    }
 
     private func loadFavorites() {
         favoriteIds = Set(UserDefaults.standard.stringArray(forKey: "FavoriteCardIds") ?? [])
@@ -146,12 +209,6 @@ final class DailyCardStore: ObservableObject {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f.string(from: Date())
     }
 
-    private static func dailySeed() -> UInt64 {
-        let dateStr = todayDateKey()
-        var h = dateStr.hashValue
-        if h < 0 { h = -h }
-        return h == 0 ? 1 : UInt64(h)
-    }
 
     private static func loadCards() -> [RevealCard] {
         guard let url = Bundle.main.url(forResource: "RevealCards_bilingual", withExtension: "json"),
@@ -171,14 +228,10 @@ final class DailyCardStore: ObservableObject {
     /// doesn't pollute the current run.
     func previewCard(for date: Date) -> RevealCard? {
         guard !allCards.isEmpty else { return nil }
-        // Use a temporary RNG whose seed derives from the target date.
-        let dateStr = Self.dateKey(for: date)
-        var h = dateStr.hashValue
-        if h < 0 { h = -h }
-        let targetSeed = h == 0 ? 1 : UInt64(h)
-        var rng = SeededRNG(seed: targetSeed)
-        let idx = Int.random(in: 0..<allCards.count, using: &rng)
-        return allCards[idx]
+        // Same rule as today's card, so the calendar shows exactly the card the
+        // user got on that date (and today matches the home screen).
+        let key = Self.dateKey(for: date)
+        return allCards[Self.cardIndex(forDayKey: key, count: allCards.count)]
     }
 
     var totalCards: Int { allCards.count }

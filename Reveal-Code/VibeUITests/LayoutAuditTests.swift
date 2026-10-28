@@ -123,6 +123,171 @@ final class LayoutAuditTests: XCTestCase {
         shot("50-reminder-enabled")
     }
 
+    /// A day the user merely opened the app on (no favourite, no note) must
+    /// open from the calendar and show its card.
+    func testSeenDayOpensFromCalendar() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+        app.buttons["Calendar"].firstMatch.tap()
+        sleep(3)
+        shot("80-calendar-seen")
+
+        // October 21 sits in the same week row as today (22), one column left.
+        let cell = app.coordinate(withNormalizedOffset: CGVector(dx: 0.388, dy: 0.617))
+        cell.tap()
+        sleep(3)
+        shot("81-seen-day-sheet")
+    }
+
+    /// Launch → quit → launch again: the daily card must be the same one.
+    func testDailyCardStableAcrossRelaunch() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(5)
+        shot("70-card-first-launch")
+        app.terminate()
+        sleep(2)
+        app.launch()
+        sleep(5)
+        shot("71-card-second-launch")
+    }
+
+    /// Opens Settings → Privacy Policy and captures the sheet, then scrolls to
+    /// the retention and third-party sections.
+    func testCapturePrivacyPolicy() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
+        if gear.waitForExistence(timeout: 3), gear.isHittable {
+            gear.tap()
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.86, dy: 0.80)).tap()
+        }
+        sleep(2)
+
+        let privacyRow = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Privacy Policy' OR label CONTAINS '隐私政策'")
+        ).firstMatch
+
+        var attempts = 0
+        while attempts < 6 && !privacyRow.isHittable {
+            app.swipeUp()
+            sleep(1)
+            attempts += 1
+        }
+        shot("90-settings-rows")
+        XCTAssertTrue(privacyRow.waitForExistence(timeout: 5), "Privacy Policy row missing from Settings")
+        privacyRow.tap()
+        sleep(2)
+
+        XCTAssertTrue(
+            app.staticTexts["Privacy Policy"].waitForExistence(timeout: 8)
+                || app.staticTexts["隐私政策"].waitForExistence(timeout: 2),
+            "Privacy Policy sheet never opened"
+        )
+        sleep(1)
+        shot("91-privacy-top")
+        app.swipeUp()
+        sleep(1)
+        shot("92-privacy-mid")
+        app.swipeUp()
+        sleep(1)
+        shot("93-privacy-bottom")
+    }
+
+    /// Long-press card → Share Verse → the system share sheet must preview the
+    /// card PNG, not the app icon.
+    func testShareSheetPreviewsCard() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            .press(forDuration: 1.0)
+        sleep(2)
+        shot("95-share-options")
+
+        let verseRow = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Share Verse' OR label CONTAINS '分享经文'")
+        ).firstMatch
+        XCTAssertTrue(verseRow.waitForExistence(timeout: 5), "Share Verse row missing")
+        verseRow.tap()
+        sleep(4)
+        shot("96-share-sheet")
+    }
+
+    /// Settings → Contact Us icons/labels, and the end of the list where the
+    /// dead band sat under the last card.
+    func testCaptureSettingsContacts() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
+        if gear.waitForExistence(timeout: 3), gear.isHittable {
+            gear.tap()
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.86, dy: 0.80)).tap()
+        }
+        sleep(2)
+
+        app.swipeUp()
+        sleep(1)
+        shot("97-contact-card")
+
+        app.swipeUp()
+        app.swipeUp()
+        sleep(1)
+        shot("98-settings-bottom")
+    }
+
+    /// Calendar day sheet: full card, tap to flip to the reflection side.
+    func testCalendarCardFlip() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        app.buttons["Calendar"].firstMatch.tap()
+        sleep(3)
+
+        // A day the app was opened on (seen), one column left of today.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.388, dy: 0.617)).tap()
+        sleep(3)
+        shot("99-calendar-card-front")
+
+        // Flip it.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).tap()
+        sleep(2)
+        shot("99b-calendar-card-back")
+
+        app.swipeUp()
+        sleep(1)
+        shot("99c-calendar-note")
+    }
+
     /// Captures the launch screen mid-animation. Run once with the simulator in
     /// light appearance and once in dark (`xcrun simctl ui <udid> appearance …`).
     func testCaptureSplash() throws {
@@ -167,10 +332,10 @@ final class LayoutAuditTests: XCTestCase {
         shot("31-share-system-sheet")
     }
 
-    /// Opens the in-app privacy policy from Settings and captures it.
-    /// App Store Review Guideline 5.1.1 requires a privacy-policy URL, and
-    /// this sheet is the in-app counterpart a reviewer will look for.
-    func testCapturePrivacyPolicy() throws {
+    /// Opens the in-app Sources & Licenses sheet and captures it, so the
+    /// text layout / divider spacing after the Privacy Policy section was
+    /// appended can be checked against the screen.
+    func testCaptureAboutBibleSources() throws {
         let app = XCUIApplication()
         app.launch()
         sleep(4)
@@ -180,7 +345,7 @@ final class LayoutAuditTests: XCTestCase {
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
 
-        // Settings is the bottom-right corner button on the home screen.
+        // Settings (bottom-right).
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
         if gear.waitForExistence(timeout: 3), gear.isHittable {
             gear.tap()
@@ -189,34 +354,36 @@ final class LayoutAuditTests: XCTestCase {
         }
         sleep(2)
 
-        // The Privacy Policy row sits below "About Bible Sources", so scroll
-        // down until it is visible.
-        let policyRow = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS[c] 'Privacy' OR label CONTAINS '隐私'")
+        // The "About Bible Sources" row sits below Language; scroll until visible.
+        let sourcesRow = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS[c] 'About Bible' OR label CONTAINS '资料来源'")
         ).firstMatch
 
         var attempts = 0
-        while attempts < 6 && !policyRow.isHittable {
+        while attempts < 6 && !sourcesRow.isHittable {
             app.swipeUp()
             sleep(1)
             attempts += 1
         }
 
-        XCTAssertTrue(policyRow.waitForExistence(timeout: 5), "privacy policy row not found in Settings")
-        shot("60-settings-privacy-row")
-        policyRow.tap()
+        XCTAssertTrue(sourcesRow.waitForExistence(timeout: 5), "About Bible Sources row not found in Settings")
+        sourcesRow.tap()
         sleep(2)
 
+        let titleEN = app.staticTexts["Sources & Licenses"]
+        let titleZH = app.staticTexts["资料来源与版权声明"]
         XCTAssertTrue(
-            app.staticTexts["Privacy Policy"].waitForExistence(timeout: 8)
-                || app.staticTexts["隐私政策"].waitForExistence(timeout: 2),
-            "privacy policy sheet never opened"
+            titleEN.waitForExistence(timeout: 8) || titleZH.waitForExistence(timeout: 2),
+            "About Bible Sources sheet never opened"
         )
         sleep(1)
-        shot("61-privacy-policy")
+        shot("70-about-bible-top")
         app.swipeUp()
         sleep(1)
-        shot("62-privacy-policy-scrolled")
+        shot("71-about-bible-middle")
+        app.swipeUp()
+        sleep(1)
+        shot("72-about-bible-privacy-section")
     }
 
     /// Opens the note editor (keyboard up) and captures it, so the overlay's

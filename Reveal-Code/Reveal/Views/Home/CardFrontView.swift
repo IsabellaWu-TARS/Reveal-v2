@@ -19,6 +19,11 @@ struct CardFrontView: View {
     /// doesn't bake in the favourite star. Default keeps the live card as is.
     var showsFavoriteButton: Bool = true
 
+    /// Override for the small line above the verse. The calendar shows past
+    /// days, where "Today's Verse" would be wrong. Defaults to nil so the
+    /// home card is untouched.
+    var headline: String? = nil
+
     /// Localised scripture reference, e.g. "Mark 12:13" /
     /// "马可福音 12:13". Driven by the actual card data
     /// (`card.book`, `card.chapter`, `card.verse`), so every
@@ -55,7 +60,7 @@ struct CardFrontView: View {
                 // (a) Top caption — tiny serif, light weight, low
                 // opacity so it reads as a quiet label rather than
                 // competing with the verse.
-                Text(language == "zh-Hans" ? "今日经文" : "Today's Verse")
+                Text(headline ?? (language == "zh-Hans" ? "今日经文" : "Today's Verse"))
                     .font(.system(size: 11, weight: .light))
                     .foregroundColor(.white.opacity(0.75))
                     .tracking(1.5)

@@ -162,11 +162,30 @@ struct SettingsView: View {
                                                 .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
                                         }
                                         VStack(alignment: .leading, spacing: 10) {
-                                            contactLink(icon: "envelope", text: "revealmashal@gmail.com", url: "mailto:revealmashal@gmail.com?subject=Reveal%20Mashal%20Feedback")
-                                            contactLink(icon: "camera.fill", text: "@reveal_mashal", url: "https://www.instagram.com/reveal_mashal")
-                                            contactLink(icon: "at", text: "X (Twitter)", url: "https://x.com/reveal_mashal?s=11")
+                                            contactLink(icon: { Image(systemName: "envelope").font(.system(size: 13)) },
+                                                        text: "revealmashal@gmail.com",
+                                                        url: "mailto:revealmashal@gmail.com?subject=Reveal%20Mashal%20Feedback")
+                                            contactLink(icon: { instagramGlyph() },
+                                                        text: "Instagram · @reveal_mashal",
+                                                        url: "https://www.instagram.com/reveal_mashal")
+                                            contactLink(icon: { xGlyph() },
+                                                        text: "X (Twitter) · @reveal_mashal",
+                                                        url: "https://x.com/reveal_mashal?s=11")
                                             Text(dailyCardStore.appLanguage == "zh-Hans" ? "如有任何问题，请联系我们。" : "If you got any problems please contact us.")
                                                 .font(.system(size: 12, weight: .light)).foregroundColor(Color(hex: "6B6B6B")).padding(.top, 2)
+                                        }
+                                    }
+                                }
+
+                                // Privacy Policy
+                                SettingsCard {
+                                    Button(action: { showPrivacyPolicy = true }) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "lock.shield.fill").foregroundColor(Design.accent)
+                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "隐私政策" : "Privacy Policy")
+                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                            Spacer()
+                                            Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(Design.accent.opacity(0.6))
                                         }
                                     }
                                 }
@@ -183,31 +202,14 @@ struct SettingsView: View {
                                         }
                                     }
                                 }
-
-                                // Privacy Policy
-                                // Guideline 5.1.1 requires a privacy-policy URL
-                                // in App Store Connect. Having the text reachable
-                                // from inside the app as well is what a reviewer
-                                // expects to find in an app that stores notes.
-                                SettingsCard {
-                                    Button(action: { showPrivacyPolicy = true }) {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "hand.raised.fill").foregroundColor(Design.accent)
-                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "隐私政策" : "Privacy Policy")
-                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
-                                            Spacer()
-                                            Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(Design.accent.opacity(0.6))
-                                        }
-                                    }
-                                }
                             }
                             .frame(maxWidth: contentMaxW)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.top, 20)
+                        .padding(.bottom, 24)
                     }
-                    .padding(.bottom, 40)
                 }
             }
         }
@@ -247,15 +249,53 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private func contactLink(icon: String, text: String, url: String) -> some View {
+    private func contactLink<Icon: View>(
+        @ViewBuilder icon: () -> Icon,
+        text: String,
+        url: String
+    ) -> some View {
         if let u = URL(string: url) {
             Link(destination: u) {
                 HStack(spacing: 8) {
-                    Image(systemName: icon).foregroundColor(Design.accent)
+                    icon()
+                        .foregroundColor(Design.accent)
+                        .frame(width: 16, height: 16)
                     Text(text).font(.system(size: 14)).foregroundColor(Design.accent)
                 }
             }
         }
+    }
+
+    /// Instagram's camera glyph. SF Symbols carries no brand marks, and a bare
+    /// `camera.fill` read as "take a photo", so the rounded-square outline is
+    /// drawn here at the same 16pt box the other icons occupy.
+    private func instagramGlyph(_ size: CGFloat = 16) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
+                .strokeBorder(Design.accent, lineWidth: 1.4)
+            Circle()
+                .strokeBorder(Design.accent, lineWidth: 1.4)
+                .frame(width: size * 0.42, height: size * 0.42)
+            Circle()
+                .fill(Design.accent)
+                .frame(width: size * 0.12, height: size * 0.12)
+                .offset(x: size * 0.24, y: -size * 0.24)
+        }
+        .frame(width: size, height: size)
+    }
+
+    /// X's wordmark, drawn as two crossed strokes ("xmark" would read as a
+    /// close button, and "at" read as an email alias).
+    private func xGlyph(_ size: CGFloat = 16) -> some View {
+        ZStack {
+            Rectangle().fill(Design.accent)
+                .frame(width: size * 0.92, height: 1.7)
+                .rotationEffect(.degrees(45))
+            Rectangle().fill(Design.accent)
+                .frame(width: size * 0.92, height: 1.7)
+                .rotationEffect(.degrees(-45))
+        }
+        .frame(width: size, height: size)
     }
 }
 

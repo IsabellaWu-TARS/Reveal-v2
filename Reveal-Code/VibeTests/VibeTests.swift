@@ -71,6 +71,76 @@ struct VibeTests {
         #expect(chapter.bookName == "1 Corinthians")
     }
 
+    /// A stale day key (the app left running past midnight, then relaunched)
+    /// is replaced by the current day's card, and the next day's card differs.
+    @Test @MainActor func staleDayKeySelfHealsAndNextDayDiffers() throws {
+        let store = DailyCardStore.shared
+        let today = try #require(store.currentCard?.id)
+        let defaults = UserDefaults.standard
+
+        // Pretend the stored state is left over from an older day.
+        defaults.set("2020-01-01", forKey: "CurrentCardDayKey")
+        defaults.set("stale-card-id", forKey: "CurrentCardId")
+        store.refreshCardForToday()
+
+        // The stale state is replaced by today's card, re-stamped with today.
+        #expect(store.currentCard?.id == today)
+        #expect(defaults.string(forKey: "CurrentCardDayKey") == store.todayDateKey)
+        #expect(defaults.string(forKey: "CurrentCardId") == today)
+
+        // Tomorrow is a different card — the deck advances one step per day.
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        #expect(store.previewCard(for: tomorrow)?.id != today)
+    }
+
+    /// The daily card is a function of the date: stable within a day, new on
+    /// the next day, and identical to what the calendar shows for that date.
+    @Test @MainActor func cardIsStableWithinADayAndChangesAtMidnight() throws {
+        let store = DailyCardStore.shared
+        let today = try #require(store.currentCard)
+        let cal = Calendar.current
+
+        // Calendar must agree with the home card for today.
+        #expect(store.previewCard(for: Date())?.id == today.id)
+
+        // Neighbouring days must be different cards — the deck walks one step
+        // per calendar day.
+        let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
+        let yesterday = cal.date(byAdding: .day, value: -1, to: Date())!
+        #expect(store.previewCard(for: tomorrow)?.id != today.id)
+        #expect(store.previewCard(for: yesterday)?.id != today.id)
+
+        // The card is persisted against the date, so a relaunch on the same day
+        // re-reads the same card instead of drawing a new one.
+        let defaults = UserDefaults.standard
+        #expect(defaults.string(forKey: "CurrentCardDayKey") == store.todayDateKey)
+        #expect(defaults.string(forKey: "CurrentCardId") == today.id)
+    }
+
+    /// Calendar access rule: future days are sealed, today is always readable,
+    /// a past day only if it was favourited or noted.
+    @Test @MainActor func calendarSealsFutureDays() throws {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let tomorrow = cal.date(byAdding: .day, value: 1, to: today)!
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        let lastWeek = cal.date(byAdding: .day, value: -7, to: today)!
+
+        // Future: never, no matter what flags are set.
+        #expect(CalendarView.canOpen(date: tomorrow, today: today, isFavorite: true, hasNote: true) == false)
+        // Today: always.
+        #expect(CalendarView.canOpen(date: today, today: today, isFavorite: false, hasNote: false) == true)
+        // Past without any user mark: sealed.
+        #expect(CalendarView.canOpen(date: lastWeek, today: today, isFavorite: false, hasNote: false, hasSeen: false) == false)
+        // Past that was actually seen (the app opened that day): readable.
+        #expect(CalendarView.canOpen(date: lastWeek, today: today, isFavorite: false, hasNote: false, hasSeen: true) == true)
+        // Seen does not unlock the future.
+        #expect(CalendarView.canOpen(date: tomorrow, today: today, isFavorite: false, hasNote: false, hasSeen: true) == false)
+        // Past with a favourite or a note: readable.
+        #expect(CalendarView.canOpen(date: yesterday, today: today, isFavorite: true, hasNote: false) == true)
+        #expect(CalendarView.canOpen(date: yesterday, today: today, isFavorite: false, hasNote: true) == true)
+    }
+
     /// If the user has the reminder switched on, there must be a repeating
     /// request queued whose next fire is within the next 24 hours.
     @Test @MainActor func enabledReminderIsQueuedAndUpcoming() async throws {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import LinkPresentation
 import Combine
 import UIKit
 
@@ -375,26 +376,26 @@ struct HomeView: View {
         switch mode {
         case .verse:
             if let front = renderCardPNG(front: true, card: card, style: style, lang: lang) {
-                items.append(front)
+                items.append(ShareItem(image: front, title: card.referenceText(language: lang)))
             }
         case .reflection:
             if let back = renderCardPNG(front: false, card: card, style: style, lang: lang) {
-                items.append(back)
+                items.append(ShareItem(image: back, title: card.referenceText(language: lang)))
             }
         case .note:
-            items.append(shareText)
+            items.append(ShareItem(text: shareText, subject: card.referenceText(language: lang)))
         case .fullSet:
             if let front = renderCardPNG(front: true, card: card, style: style, lang: lang) {
-                items.append(front)
+                items.append(ShareItem(image: front, title: card.referenceText(language: lang)))
             }
             if let back = renderCardPNG(front: false, card: card, style: style, lang: lang) {
-                items.append(back)
+                items.append(ShareItem(image: back, title: card.referenceText(language: lang)))
             }
-            items.append(shareText)
+            items.append(ShareItem(text: shareText, subject: card.referenceText(language: lang)))
         }
 
         // If rendering failed for any reason, still share something useful.
-        if items.isEmpty { items = [shareText] }
+        if items.isEmpty { items = [ShareItem(text: shareText, subject: card.referenceText(language: lang))] }
         presentShareSheet(items: items)
     }
 
@@ -434,4 +435,73 @@ struct HomeView: View {
         top.present(activityVC, animated: true)
     }
 
+}
+
+// MARK: - Share sheet item
+//
+// Handing `UIActivityViewController` a bare UIImage or String makes the sheet
+// show the *app icon* in its preview header. `thumbnailImageForActivityType`
+// is what the header actually renders, so the item is wrapped to hand back the
+// card PNG (or nil, which lets the system draw the text preview).
+
+final class ShareItem: NSObject, UIActivityItemSource {
+    private let payload: Any
+    private let preview: UIImage?
+    private let subjectLine: String?
+
+    init(image: UIImage, title: String? = nil) {
+        self.payload = image
+        self.preview = image
+        self.subjectLine = title
+        super.init()
+    }
+
+    init(text: String, subject: String?) {
+        self.payload = text
+        self.preview = nil
+        self.subjectLine = subject
+        super.init()
+    }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        // Must match the type the real item will be, or some activities
+        // (Mail, Messages) refuse the share.
+        if let preview { return preview }
+        return payload as? String ?? ""
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        itemForActivityType activityType: UIActivity.ActivityType?
+    ) -> Any? {
+        payload
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        subjectForActivityType activityType: UIActivity.ActivityType?
+    ) -> String {
+        subjectLine ?? ""
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        thumbnailImageForActivityType activityType: UIActivity.ActivityType?,
+        suggestedSize size: CGSize
+    ) -> UIImage? {
+        preview
+    }
+
+    /// The header iOS 26 actually renders. Without this the sheet draws a
+    /// generic placeholder (or the app icon) even though the image is attached.
+    func activityViewControllerLinkMetadata(_ activityViewController: UIActivityViewController) -> LPLinkMetadata? {
+        let metadata = LPLinkMetadata()
+        if let preview {
+            metadata.imageProvider = NSItemProvider(object: preview)
+            metadata.title = subjectLine ?? "Reveal"
+        } else if let text = payload as? String {
+            metadata.title = String(text.prefix(120))
+        }
+        return metadata
+    }
 }

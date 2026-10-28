@@ -52,7 +52,7 @@ struct CalendarView: View {
 
     // P24: Apple-Calendar-style vertical list. Window of months
     // centred on the current month at construction time. 24 back
-    // covers ~2 years of "Scripture History"; 24 forward covers
+    // covers ~2 years of history; 24 forward covers
     // ~2 years of upcoming plans / future calendar entries.
     private let monthWindowBack: Int = 24
     private let monthWindowForward: Int = 24
@@ -66,7 +66,7 @@ struct CalendarView: View {
     }
 
     private var pageTitle: String {
-        dailyCardStore.appLanguage == "zh-Hans" ? "经文历史" : "Scripture History"
+        dailyCardStore.appLanguage == "zh-Hans" ? "日历" : "Calendar"
     }
 
     private func monthTitle(_ month: Date) -> String {
@@ -207,6 +207,8 @@ struct CalendarView: View {
                         isDark: self.isDark,
                         onTap: { (date: Date) in
                             MainActor.assumeIsolated {
+                                // Sealed days stay shut: nothing happens on tap.
+                                guard self.canOpen(date) else { return }
                                 self.selected = CalendarSelection(date: date)
                             }
                         }
@@ -270,8 +272,37 @@ struct CalendarView: View {
 
     // MARK: - Date helpers
 
+    /// Past and present only. Future dates are sealed: no card, no
+    /// favourite/note indicators, nothing to open — so a user can never read
+    /// ahead.
     private func cardForDate(_ date: Date) -> RevealCard? {
-        dailyCardStore.previewCard(for: date)
+        let day = calendar.startOfDay(for: date)
+        guard day <= calendar.startOfDay(for: Date()) else { return nil }
+        return dailyCardStore.previewCard(for: date)
+    }
+
+    /// Today's card always opens. A past day opens if the user saw it that day
+    /// (opening the app marks the day), favourited it, or wrote a note on it.
+    /// Future days never open.
+    private func canOpen(_ date: Date) -> Bool {
+        guard let card = cardForDate(date) else { return false }
+        return Self.canOpen(
+            date: date,
+            today: Date(),
+            isFavorite: dailyCardStore.isFavorite(card.id),
+            hasNote: !notesStore.note(for: card.id).isEmpty,
+            hasSeen: dailyCardStore.hasScripture(for: date)
+        )
+    }
+
+    /// Pure form of the rule, so it can be unit-tested without the view.
+    static func canOpen(date: Date, today: Date, isFavorite: Bool, hasNote: Bool, hasSeen: Bool = false) -> Bool {
+        let cal = Calendar.current
+        let day = cal.startOfDay(for: date)
+        let now = cal.startOfDay(for: today)
+        if day > now { return false }              // future: sealed
+        if day == now { return true }              // today: always readable
+        return hasSeen || isFavorite || hasNote    // past: anything the user saw or kept
     }
 
     private func hasScripture(for date: Date?) -> Bool {
@@ -300,18 +331,15 @@ struct CalendarView: View {
     }
 
     private var calendarBackground: some View {
-        Group {
-            if self.isDark {
-                Color.black
-            } else {
-                Color(hex: "F2F0EB")
-            }
-        }
-        .ignoresSafeArea()
+        // Same backdrop as Home / Settings / Scripture so the pages match
+        // instead of the calendar sitting on its own flat black or cream.
+        AppBackground()
     }
 
+    /// Transparent month sections: the page backdrop is a gradient, so a solid
+    /// fill here would re-create the white/black panel edges that were removed.
     private var calendarCardBackground: some View {
-        isDark ? Color(white: 0.10) : Color.white
+        Color.clear
     }
 
     private var foregroundText: Color {
@@ -514,6 +542,9 @@ private struct DateDetailSheet: View {
 
     @State private var noteText: String = ""
     @State private var isEditingNote: Bool = false
+    /// The card is the real card, so it can be flipped here exactly like on Home.
+    @State private var isFlipped: Bool = false
+    @State private var flipAngle: Double = 0
 
     private var isDark: Bool {
         switch themeManager.appearanceMode {
@@ -595,24 +626,58 @@ private struct DateDetailSheet: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// Front = verse, back = reflection, tap to flip. Same faces, same
+    /// style and same 3D flip as the Home card; only the gesture is local so
+    /// the calendar never drives the store's current card.
+    private func flipCard(_ card: RevealCard) -> some View {
+        let style = CardStyle.forCardId(card.id)
+        return ZStack {
+            CardBackView(
+                card: card,
+                language: self.language,
+                style: style,
+                onFavorite: { self.dailyCardStore.toggleFavorite(card.id) },
+                isFavorite: self.dailyCardStore.isFavorite(card.id),
+                showsFavoriteButton: false,
+                showsReturnHint: false
+            )
+            .opacity(self.isFlipped ? 1 : 0)
+            .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+
+            CardFrontView(
+                card: card,
+                language: self.language,
+                style: style,
+                onFavorite: { self.dailyCardStore.toggleFavorite(card.id) },
+                isFavorite: self.dailyCardStore.isFavorite(card.id),
+                showsFavoriteButton: false,
+                headline: self.language == "zh-Hans" ? "经文" : "Verse"
+            )
+            .opacity(self.isFlipped ? 0 : 1)
+        }
+        .aspectRatio(360.0 / 572.0, contentMode: .fit)
+        .compositingGroup()
+        .rotation3DEffect(
+            .degrees(self.flipAngle),
+            axis: (x: 0, y: 1, z: 0),
+            perspective: 0.5
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            HapticManager.light()
+            withAnimation(.easeInOut(duration: 0.55)) {
+                self.flipAngle += 180
+                self.isFlipped.toggle()
+            }
+        }
+        .accessibilityIdentifier("calendar-card")
+    }
+
     private func cardSection(_ card: RevealCard) -> some View {
         VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("\"\(card.verseText(language: self.language))\"")
-                    .font(.custom("Georgia", size: 16))
-                    .foregroundColor(self.primaryText)
-                    .lineSpacing(6)
-                    .multilineTextAlignment(.leading)
-
-                Text(card.questionText(language: self.language))
-                    .font(.system(size: 14))
-                    .foregroundColor(self.primaryText.opacity(0.7))
-                    .lineSpacing(4)
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(self.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            // The real card — same faces the Home screen uses, so the verse,
+            // reflection and action all match what the user saw that day.
+            self.flipCard(card)
 
             // Favorite toggle row
             Button(action: {
