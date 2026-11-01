@@ -24,6 +24,12 @@ struct SettingsView: View {
     @State private var showAboutSources = false
     @State private var showPrivacyPolicy = false
 
+    // Card text colour — see CardInk.swift. Stored as a hex string so the
+    // choice survives relaunch and is readable by the card views.
+    @AppStorage("cardInkMode") private var cardInkMode: String = CardInk.white.rawValue
+    @AppStorage("cardInkCustomHex") private var cardInkHex: String = "FFFFFF"
+    @State private var customInkColor: Color = .white
+
     var body: some View {
         // P13: Pull the Settings cards toward the centre so the frame reads
         // tighter (per user feedback: "可以往中间紧凑一点"). We cap the scroll
@@ -104,6 +110,55 @@ struct SettingsView: View {
                                     }
                                 }
 
+                                // Card Text Colour
+                                SettingsCard {
+                                    VStack(alignment: .leading, spacing: 14) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "textformat").foregroundColor(Design.accent)
+                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "卡片文字颜色" : "Card Text Colour")
+                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                        }
+
+                                        Menu {
+                                            ForEach(CardInk.allCases) { mode in
+                                                Button(mode.title(language: dailyCardStore.appLanguage)) {
+                                                    cardInkMode = mode.rawValue
+                                                    if mode == .custom { customInkColor = Color(hex: cardInkHex) }
+                                                }
+                                            }
+                                        } label: {
+                                            HStack(spacing: 10) {
+                                                Circle()
+                                                    .fill(currentInkSwatch)
+                                                    .frame(width: 18, height: 18)
+                                                    .overlay(Circle().stroke(Color.primary.opacity(0.15), lineWidth: 1))
+                                                Text(currentInkTitle)
+                                                    .foregroundColor(Design.accent)
+                                                Spacer()
+                                                Image(systemName: "chevron.down").foregroundColor(Design.accent.opacity(0.6))
+                                            }
+                                            .padding(12)
+                                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.1)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.15), lineWidth: 1)))
+                                        }
+
+                                        if cardInkMode == CardInk.custom.rawValue {
+                                            ColorPicker(
+                                                dailyCardStore.appLanguage == "zh-Hans" ? "选择颜色" : "Pick a colour",
+                                                selection: $customInkColor,
+                                                supportsOpacity: false
+                                            )
+                                            .font(.system(size: 14))
+                                            .onChange(of: customInkColor) { _, newValue in
+                                                cardInkHex = newValue.hexString
+                                            }
+                                        }
+
+                                        Text(hintText)
+                                            .font(.system(size: 12, weight: .light))
+                                            .foregroundColor(Color(hex: "6B6B6B"))
+                                    }
+                                }
+
                                 // Daily Reminders
                                 SettingsCard {
                                     VStack(alignment: .leading, spacing: 14) {
@@ -177,6 +232,20 @@ struct SettingsView: View {
                                     }
                                 }
 
+                                // Version — App Review and users both need this
+                                // when reporting a problem.
+                                SettingsCard {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "info.bubble.fill").foregroundColor(Design.accent)
+                                        Text(dailyCardStore.appLanguage == "zh-Hans" ? "版本" : "Version")
+                                            .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                        Spacer()
+                                        Text(appVersionString)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+
                                 // Privacy Policy
                                 SettingsCard {
                                     Button(action: { showPrivacyPolicy = true }) {
@@ -246,6 +315,40 @@ struct SettingsView: View {
         Task {
             await NotificationScheduler.scheduleDailyReminder(hour: hour, minute: minute, appLanguage: language)
         }
+    }
+
+    /// "1.0 (1)" — marketing version plus build number, straight from the bundle.
+    private var appVersionString: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?["CFBundleVersion"] as? String ?? "—"
+        return "\(version) (\(build))"
+    }
+
+    // MARK: - Card text colour helpers
+
+    private var currentInkTitle: String {
+        (CardInk(rawValue: cardInkMode) ?? .automatic).title(language: dailyCardStore.appLanguage)
+    }
+
+    private var currentInkSwatch: Color {
+        switch CardInk(rawValue: cardInkMode) ?? .automatic {
+        case .automatic: return Design.paperInkDeep
+        case .white:     return .white
+        case .ink:       return Design.paperInkDeep
+        case .custom:    return Color(hex: cardInkHex)
+        }
+    }
+
+    private var hintText: String {
+        if dailyCardStore.appLanguage == "zh-Hans" {
+            return cardInkMode == CardInk.automatic.rawValue
+                ? "自动会为每张卡片挑选最易读的颜色。"
+                : "浅色卡片上使用浅色文字可能难以阅读，可随时切回自动。"
+        }
+        return cardInkMode == CardInk.automatic.rawValue
+            ? "Automatic picks the most legible ink for each card."
+            : "Light ink can be hard to read on pale cards — switch back to Automatic any time."
     }
 
     @ViewBuilder
