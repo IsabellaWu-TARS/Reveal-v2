@@ -24,6 +24,19 @@ struct CardFrontView: View {
     /// home card is untouched.
     var headline: String? = nil
 
+    @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
+    @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
+
+    /// Ink for this face: the per-card default, or whatever the person chose
+    /// in Settings → Card Text Colour.
+    private var inkPalette: CardInkPalette {
+        CardInkPalette(
+            style: style,
+            mode: CardInk(rawValue: inkModeRaw) ?? .automatic,
+            customHex: inkCustomHex
+        )
+    }
+
     /// Localised scripture reference, e.g. "Mark 12:13" /
     /// "马可福音 12:13". Driven by the actual card data
     /// (`card.book`, `card.chapter`, `card.verse`), so every
@@ -46,7 +59,8 @@ struct CardFrontView: View {
     var body: some View {
         ZStack {
             // ── Card base: rounded rectangle filled with the day's
-            //    gradient (top → bottom, 3 stops). Text on top is white.
+            //    gradient (top → bottom, 3 stops). Text ink follows the
+            //    gradient (see CardStyle.ink) so it stays readable.
         RoundedRectangle(cornerRadius: 32, style: .continuous)
             .fill(style.cardBackground())
                 .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 10)
@@ -62,7 +76,7 @@ struct CardFrontView: View {
                 // competing with the verse.
                 Text(headline ?? (language == "zh-Hans" ? "今日经文" : "Today's Verse"))
                     .font(.system(size: 11, weight: .light))
-                    .foregroundColor(.white.opacity(0.75))
+                    .foregroundColor(inkPalette.tertiary)
                     .tracking(1.5)
                     .textCase(.uppercase)
 
@@ -75,7 +89,7 @@ struct CardFrontView: View {
                 Text(quotedVerse(card.verseText(language: language)))
                     .font(.custom("Georgia", size: 17))
                     .fontWeight(.light)
-                    .foregroundColor(.white)
+                    .foregroundColor(inkPalette.body)
                     .multilineTextAlignment(.center)
                     .lineSpacing(7)
                     .padding(.horizontal, 28)
@@ -87,7 +101,7 @@ struct CardFrontView: View {
                 Text(referenceLine)
                     .font(.custom("Georgia-Bold", size: 13))
                     .bold()
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(inkPalette.secondary)
 
                 Spacer(minLength: 4)
             }

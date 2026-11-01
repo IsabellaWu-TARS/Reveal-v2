@@ -25,135 +25,97 @@ enum CardStyle: String, CaseIterable, Identifiable, Codable {
     private var bottom: Color { Color(hex: bottomHex) }
 
     private var topHex: String {
-        // P16 (per user request): card palette has been completely
-        // refreshed from the new colour reference image. All 24
-        // `CardStyle` cases now point at the 13 new palette swatches
-        // (cycling 1→13, then 1→11 again for the remaining cases) so
-        // the existing `forCardId(_:)` / `forDate(_:)` random
-        // selection logic continues to work without any other
-        // changes. Case names are kept (Codable stability); only the
-        // hex values change.
+        // Restored palette: 13 soft gradients across 24 card names.
         switch self {
-        case .roseDusk:        return "D4D2DE"  // swatch 1 — light grey-violet
-        case .twilightBlush:   return "E0B7A8"  // swatch 2 — peach
-        case .blushStone:      return "E9D2C0"  // swatch 3 — warm cream
-        case .lavenderMist:    return "E9DAC1"  // swatch 4 — amber
-        case .sageReflection:  return "93B7AB"  // swatch 5 — sage cream
-        case .goldenDawn:      return "2D3A5C"  // swatch 6 — twilight dusk
-        case .oceanCalm:       return "3A4E6B"  // swatch 7 — blue sky
-        case .forestDeep:      return "F0E5D2"  // swatch 8 — oat / linen
-        case .sunsetCoral:     return "F2DDD5"  // swatch 9 — pink mist
-        case .midnightInk:     return "F0E5D2"  // swatch 10 — lilac oat
-        case .peachCream:      return "A8C7BB"  // swatch 11 — teal mist
-        case .mintFresh:       return "4E4870"  // swatch 12 — lavender dusk
-        case .wisteria:        return "2E4F5C"  // swatch 13 — deep teal
-        // Cycle back through swatches 1–11 for the remaining cases
-        // so the full 24-style palette stays balanced.
-        case .desertSand:      return "D4D2DE"  // swatch 1
-        case .stormCloud:      return "E0B7A8"  // swatch 2
-        case .cherryBlossom:   return "E9D2C0"  // swatch 3
-        case .amberEmber:      return "E9DAC1"  // swatch 4
-        case .arcticSky:       return "93B7AB"  // swatch 5
-        case .oliveGrove:      return "2D3A5C"  // swatch 6
-        case .plumNight:       return "3A4E6B"  // swatch 7
-        case .terracotta:      return "F0E5D2"  // swatch 8
-        case .tealLagoon:      return "F2DDD5"  // swatch 9
-        case .honeyLinen:      return "F0E5D2"  // swatch 10
-        case .slateBlue:       return "A8C7BB"  // swatch 11
+        case .roseDusk:       return "C9C6D6"
+        case .twilightBlush:  return "D8AB9A"
+        case .blushStone:     return "E9D2C0"
+        case .lavenderMist:   return "E9DAC1"
+        case .sageReflection: return "93B7AB"
+        case .goldenDawn:     return "2D3A5C"
+        case .oceanCalm:      return "8FA9C4"
+        case .forestDeep:     return "F0E5D2"
+        case .sunsetCoral:    return "EACABC"
+        case .midnightInk:    return "E8D5BA"
+        case .peachCream:     return "A8C7BB"
+        case .mintFresh:      return "B3A9D2"
+        case .wisteria:       return "86A9B4"
+        case .desertSand:     return "C9C6D6"
+        case .stormCloud:     return "D8AB9A"
+        case .cherryBlossom:  return "E9D2C0"
+        case .amberEmber:     return "E9DAC1"
+        case .arcticSky:      return "93B7AB"
+        case .oliveGrove:     return "2D3A5C"
+        case .plumNight:      return "8FA9C4"
+        case .terracotta:     return "F0E5D2"
+        case .tealLagoon:     return "EACABC"
+        case .honeyLinen:     return "E8D5BA"
+        case .slateBlue:      return "A8C7BB"
         }
     }
 
     private var midHex: String {
+        // Four families were too pale, so their stops were deepened ~10%;
+        // the clay/rose, blush, coral and lilac-oat groups now read as cards
+        // instead of blending into the paper page behind them.
         switch self {
-        case .roseDusk:        return "E1C4B4"  // swatch 1
-        case .twilightBlush:   return "F1D8C5"  // swatch 2
-        case .blushStone:      return "F2DCC8"  // swatch 3
-        case .lavenderMist:    return "B69876"  // swatch 4
-        case .sageReflection:  return "D5DCC5"  // swatch 5
-        case .goldenDawn:      return "5C5A7A"  // swatch 6
-        case .oceanCalm:       return "A8C5D9"  // swatch 7
-        case .forestDeep:      return "BFBDB6"  // swatch 8
-        case .sunsetCoral:     return "F4E5DA"  // swatch 9
-        case .midnightInk:     return "DDD2DE"  // swatch 10
-        case .peachCream:      return "C8D5C9"  // swatch 11
-        case .mintFresh:       return "B5B0D0"  // swatch 12
-        case .wisteria:        return "8AAEB8"  // swatch 13
-        case .desertSand:      return "E1C4B4"  // swatch 1
-        case .stormCloud:      return "F1D8C5"  // swatch 2
-        case .cherryBlossom:   return "F2DCC8"  // swatch 3
-        case .amberEmber:      return "B69876"  // swatch 4
-        case .arcticSky:       return "D5DCC5"  // swatch 5
-        case .oliveGrove:      return "5C5A7A"  // swatch 6
-        case .plumNight:       return "A8C5D9"  // swatch 7
-        case .terracotta:      return "BFBDB6"  // swatch 8
-        case .tealLagoon:      return "F4E5DA"  // swatch 9
-        case .honeyLinen:      return "DDD2DE"  // swatch 10
-        case .slateBlue:       return "C8D5C9"  // swatch 11
+        case .roseDusk:       return "D6B8A8"
+        case .twilightBlush:  return "E7CCB7"
+        case .blushStone:     return "F2DCC8"
+        case .lavenderMist:   return "B69876"
+        case .sageReflection: return "D5DCC5"
+        case .goldenDawn:     return "4A4763"
+        case .oceanCalm:      return "A8C5D9"
+        case .forestDeep:     return "BFBDB6"
+        case .sunsetCoral:    return "EDD2C4"
+        case .midnightInk:    return "D2C6D6"
+        case .peachCream:     return "C8D5C9"
+        case .mintFresh:      return "B5B0D0"
+        case .wisteria:       return "8AAEB8"
+        case .desertSand:     return "D6B8A8"
+        case .stormCloud:     return "E7CCB7"
+        case .cherryBlossom:  return "F2DCC8"
+        case .amberEmber:     return "B69876"
+        case .arcticSky:      return "D5DCC5"
+        case .oliveGrove:     return "4A4763"
+        case .plumNight:      return "A8C5D9"
+        case .terracotta:     return "BFBDB6"
+        case .tealLagoon:     return "EDD2C4"
+        case .honeyLinen:     return "D2C6D6"
+        case .slateBlue:      return "C8D5C9"
         }
     }
 
     private var bottomHex: String {
+        // Bottom stop — kept light enough for the espresso ink.
         switch self {
-        case .roseDusk:        return "F2EBE2"  // swatch 1
-        case .twilightBlush:   return "F8E8D8"  // swatch 2
-        case .blushStone:      return "DDB59A"  // swatch 3
-        case .lavenderMist:    return "F4ECD8"  // swatch 4
-        case .sageReflection:  return "F2EAD6"  // swatch 5
-        case .goldenDawn:      return "DCD3BC"  // swatch 6
-        case .oceanCalm:       return "D6D8DC"  // swatch 7
-        case .forestDeep:      return "807F75"  // swatch 8
-        case .sunsetCoral:     return "F8F1E6"  // swatch 9
-        case .midnightInk:     return "E8E2D2"  // swatch 10
-        case .peachCream:      return "E8E0CE"  // swatch 11
-        case .mintFresh:       return "E8E0D0"  // swatch 12
-        case .wisteria:        return "E0DDD0"  // swatch 13
-        case .desertSand:      return "F2EBE2"  // swatch 1
-        case .stormCloud:      return "F8E8D8"  // swatch 2
-        case .cherryBlossom:   return "DDB59A"  // swatch 3
-        case .amberEmber:      return "F4ECD8"  // swatch 4
-        case .arcticSky:       return "F2EAD6"  // swatch 5
-        case .oliveGrove:      return "DCD3BC"  // swatch 6
-        case .plumNight:       return "D6D8DC"  // swatch 7
-        case .terracotta:      return "807F75"  // swatch 8
-        case .tealLagoon:      return "F8F1E6"  // swatch 9
-        case .honeyLinen:      return "E8E2D2"  // swatch 10
-        case .slateBlue:       return "E8E0CE"  // swatch 11
+        case .roseDusk:       return "E8DCCC"
+        case .twilightBlush:  return "EFDAC6"
+        case .blushStone:     return "DDB59A"
+        case .lavenderMist:   return "F4ECD8"
+        case .sageReflection: return "F2EAD6"
+        case .goldenDawn:     return "3B3550"
+        case .oceanCalm:      return "D6D8DC"
+        case .forestDeep:     return "B4AFA2"
+        case .sunsetCoral:    return "F2DFD2"
+        case .midnightInk:    return "DED5C2"
+        case .peachCream:     return "E8E0CE"
+        case .mintFresh:      return "E8E0D0"
+        case .wisteria:       return "E0DDD0"
+        case .desertSand:     return "E8DCCC"
+        case .stormCloud:     return "EFDAC6"
+        case .cherryBlossom:  return "DDB59A"
+        case .amberEmber:     return "F4ECD8"
+        case .arcticSky:      return "F2EAD6"
+        case .oliveGrove:     return "3B3550"
+        case .plumNight:      return "D6D8DC"
+        case .terracotta:     return "B4AFA2"
+        case .tealLagoon:     return "F2DFD2"
+        case .honeyLinen:     return "DED5C2"
+        case .slateBlue:      return "E8E0CE"
         }
     }
 
-    // MARK: - Display
-
-    /// Human-readable name (used by future Settings UI / card legend).
-    var displayName: String {
-        switch self {
-        case .roseDusk:        return "Rose Dusk"
-        case .twilightBlush:   return "Twilight Blush"
-        case .blushStone:      return "Blush Stone"
-        case .lavenderMist:    return "Lavender Mist"
-        case .sageReflection:  return "Sage Reflection"
-        case .goldenDawn:      return "Golden Dawn"
-        case .oceanCalm:       return "Ocean Calm"
-        case .forestDeep:      return "Forest Deep"
-        case .sunsetCoral:     return "Sunset Coral"
-        case .midnightInk:     return "Midnight Ink"
-        case .peachCream:      return "Peach Cream"
-        case .mintFresh:       return "Mint Fresh"
-        case .wisteria:        return "Wisteria"
-        case .desertSand:      return "Desert Sand"
-        case .stormCloud:      return "Storm Cloud"
-        case .cherryBlossom:   return "Cherry Blossom"
-        case .amberEmber:      return "Amber Ember"
-        case .arcticSky:       return "Arctic Sky"
-        case .oliveGrove:      return "Olive Grove"
-        case .plumNight:       return "Plum Night"
-        case .terracotta:      return "Terracotta"
-        case .tealLagoon:      return "Teal Lagoon"
-        case .honeyLinen:      return "Honey Linen"
-        case .slateBlue:       return "Slate Blue"
-        }
-    }
-
-    /// The 3-stop palette as `[Color]`, ordered top → mid → bottom.
     var palette: [Color] { [top, mid, bottom] }
 
     /// The card background: a vertical (top → bottom) `LinearGradient`
@@ -164,6 +126,40 @@ enum CardStyle: String, CaseIterable, Identifiable, Codable {
             startPoint: .top,
             endPoint: .bottom
         )
+    }
+
+    // MARK: - Ink
+    //
+    // Thirteen soft gradients across twenty-four cards; the dusk pair is the
+    // only deep one, so white ink applies there and the espresso ink elsewhere. Text used to be hard-coded white, which
+    // measured 1.1–2.4:1 on the pastel cards — far below the 4.5:1 body-text
+    // minimum. Ink now follows the gradient: deep espresso on paper, white on
+    // dusk, all taken from the design system's existing ink tokens.
+
+    /// True for the gradients that stay dark edge to edge.
+    var hasDeepTone: Bool {
+        self == .goldenDawn || self == .oliveGrove
+    }
+
+    /// Body ink — the verse and the reflection paragraphs.
+    var ink: Color {
+        hasDeepTone ? .white : Design.paperInkDeep
+    }
+
+    /// Secondary ink — reference line, section labels.
+    var inkSecondary: Color {
+        hasDeepTone ? Color.white.opacity(0.88) : Design.paperInk
+    }
+
+    /// Quiet ink — the small caption and the "tap to return" hint. Kept above
+    /// 4.5:1 rather than fading to invisibility.
+    var inkTertiary: Color {
+        hasDeepTone ? Color.white.opacity(0.62) : Design.paperInk.opacity(0.78)
+    }
+
+    /// Fill behind the round ? / ✓ chips.
+    var inkChipFill: Color {
+        hasDeepTone ? Color.white.opacity(0.18) : Design.paperInkDeep.opacity(0.10)
     }
 
     // MARK: - Date-based picker

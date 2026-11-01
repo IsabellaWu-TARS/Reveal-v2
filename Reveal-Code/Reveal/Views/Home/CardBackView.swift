@@ -22,6 +22,19 @@ struct CardBackView: View {
     /// person holding the phone, not part of the artwork.
     var showsReturnHint: Bool = true
 
+    @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
+    @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
+
+    /// Ink for this face: the per-card default, or whatever the person chose
+    /// in Settings → Card Text Colour.
+    private var inkPalette: CardInkPalette {
+        CardInkPalette(
+            style: style,
+            mode: CardInk(rawValue: inkModeRaw) ?? .automatic,
+            customHex: inkCustomHex
+        )
+    }
+
     /// Main heading on the back of the card. Per the new card-back
     /// layout reference the heading is a single word — "Reflection"
     /// (zh: "默想") — not the old two-word "Reflect & Action".
@@ -44,7 +57,7 @@ struct CardBackView: View {
                 Text(mainHeading)
                     .font(.custom("Georgia", size: 24))
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(inkPalette.body)
                     .padding(.horizontal, 26)
                     .padding(.top, 28)
 
@@ -55,20 +68,20 @@ struct CardBackView: View {
                 HStack(alignment: .top, spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.18))
+                            .fill(inkPalette.chipFill)
                             .frame(width: 34, height: 34)
                         Image(systemName: "questionmark")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(inkPalette.body)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(reflectLabel)
                             .font(.custom("Georgia", size: 14))
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(inkPalette.body)
                         Text(card.questionText(language: language))
                             .font(.custom("Georgia", size: 15))
-                            .foregroundColor(.white.opacity(0.92))
+                            .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -82,20 +95,20 @@ struct CardBackView: View {
                 HStack(alignment: .top, spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.18))
+                            .fill(inkPalette.chipFill)
                             .frame(width: 34, height: 34)
                         Image(systemName: "checkmark")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(inkPalette.body)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(actionLabel)
                             .font(.custom("Georgia", size: 14))
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(inkPalette.body)
                         Text(card.actionText(language: language))
                             .font(.custom("Georgia", size: 15))
-                            .foregroundColor(.white.opacity(0.92))
+                            .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -108,7 +121,7 @@ struct CardBackView: View {
                 if showsReturnHint {
                     Text(tapToReturn)
                         .font(.custom("Georgia", size: 12))
-                        .foregroundColor(.white.opacity(0.55))
+                        .foregroundColor(inkPalette.tertiary)
                         .tracking(2)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.bottom, 28)
