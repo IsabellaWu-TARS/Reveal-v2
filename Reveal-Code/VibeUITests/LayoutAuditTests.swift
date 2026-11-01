@@ -288,6 +288,73 @@ final class LayoutAuditTests: XCTestCase {
         shot("99c-calendar-note")
     }
 
+    /// Flip today's card and capture the reflection side; then restore English.
+    /// The language is whatever the app is currently set to.
+    func testCaptureChineseReflection() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(5)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        // Flip the card (front → back).
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        sleep(2)
+        shot("89-zh-reflection")
+    }
+
+    /// Puts the app back to English after a Chinese capture run.
+    func testRestoreEnglish() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+        let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
+        if gear.waitForExistence(timeout: 3), gear.isHittable {
+            gear.tap()
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.86, dy: 0.80)).tap()
+        }
+        sleep(2)
+
+        let menu = app.buttons.matching(
+            NSPredicate(format: "label == '中文' OR label == 'English'")
+        ).firstMatch
+        if menu.waitForExistence(timeout: 4), menu.isHittable {
+            menu.tap()
+            sleep(1)
+            let en = app.buttons["English"].firstMatch
+            if en.waitForExistence(timeout: 3) { en.tap(); sleep(2) }
+        }
+        sleep(1)
+        XCTAssertTrue(
+            app.buttons.matching(NSPredicate(format: "label == 'English'")).firstMatch.exists,
+            "language did not switch back to English"
+        )
+    }
+
+    /// Settings → Card Text Colour row.
+    func testCaptureCardInkRow() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(4)
+
+        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+            let b = app.buttons[label]
+            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
+        }
+
+        let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
+        if gear.waitForExistence(timeout: 3), gear.isHittable { gear.tap() }
+        else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.86, dy: 0.80)).tap() }
+        sleep(2)
+
+        app.swipeUp(); sleep(1)
+        shot("A1-settings-ink-row")
+    }
+
     /// Captures the launch screen mid-animation. Run once with the simulator in
     /// light appearance and once in dark (`xcrun simctl ui <udid> appearance …`).
     func testCaptureSplash() throws {

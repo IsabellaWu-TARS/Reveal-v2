@@ -102,7 +102,44 @@ enum NotificationScheduler {
         appLanguage: String
     ) async {
         guard await requestAuthorizationIfNeeded() else { return }
+        await queueReminder(hour: hour, minute: minute, appLanguage: appLanguage)
+    }
 
+    /// Re-assert an already-enabled reminder **without prompting**.
+    ///
+    /// iOS discards an app's pending local notifications when the app binary is
+    /// replaced, so after an update the reminder silently stopped until the
+    /// person happened to open Settings again. Called once per launch.
+    static func reassertIfEnabled() async {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: "dailyReminderEnabled") else { return }
+
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            break
+        default:
+            return   // never prompt from a background launch path
+        }
+
+        let hour = defaults.object(forKey: "dailyReminderHour") as? Int ?? 20
+        let minute = defaults.object(forKey: "dailyReminderMinute") as? Int ?? 0
+        let language = defaults.string(forKey: "AppLanguage") ?? "en"
+
+        // Leave a correct existing request alone; only rebuild when it is gone
+        // or was scheduled for a different time.
+        let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+            .first { $0.identifier == dailyReminderIdentifier }
+        if let trigger = pending?.trigger as? UNCalendarNotificationTrigger,
+           trigger.dateComponents.hour == hour,
+           trigger.dateComponents.minute == minute {
+            return
+        }
+        await queueReminder(hour: hour, minute: minute, appLanguage: language)
+    }
+
+    /// Builds and adds the repeating request. Callers decide about permission.
+    private static func queueReminder(hour: Int, minute: Int, appLanguage: String) async {
         // Remove anything previously queued (including legacy per-day ids) so
         // changing the time replaces the reminder instead of stacking.
         await cancelAllOwnedAsync()

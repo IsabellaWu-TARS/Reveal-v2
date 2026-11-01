@@ -65,6 +65,12 @@ struct ContentView: View {
         .animation(Design.springAnim, value: currentPage)
         .animation(Design.springAnim, value: showOnboarding)
         .animation(.easeInOut(duration: 0.5), value: showSplash)
+        .task {
+            // If the reminder is on, re-queue it once per launch. iOS discards
+            // an app's pending local notifications when the binary is replaced,
+            // so without this an update silently stops the reminder.
+            await NotificationScheduler.reassertIfEnabled()
+        }
     }
 }
 

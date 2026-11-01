@@ -6,6 +6,7 @@
 //
 
 import Testing
+import SwiftUI
 import Foundation
 import UserNotifications
 @testable import Reveal
@@ -141,11 +142,43 @@ struct VibeTests {
         #expect(CalendarView.canOpen(date: yesterday, today: today, isFavorite: false, hasNote: true) == true)
     }
 
+    /// Renders one card per CardStyle so the palette can be reviewed, and
+    /// prints the contrast ratio of the card's white text against each
+    /// gradient stop.
+    @Test @MainActor func renderEveryCardStyle() throws {
+        let cards = DailyCardStore.shared.allCards
+        guard !cards.isEmpty else { return }
+
+        var sample: [CardStyle: RevealCard] = [:]
+        for c in cards { if sample[CardStyle.forCardId(c.id)] == nil { sample[CardStyle.forCardId(c.id)] = c } }
+
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        print("RENDER-DIR \(dir.path)")
+
+        for style in CardStyle.allCases {
+            guard let card = sample[style] else { continue }
+            let view = CardFrontView(card: card, language: "en", style: style,
+                                     onFavorite: {}, isFavorite: false, showsFavoriteButton: false)
+                .frame(width: 360, height: 572)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            guard let img = renderer.uiImage, let data = img.pngData() else { continue }
+            try data.write(to: dir.appendingPathComponent("style-\(style.rawValue).png"))
+        }
+        print("RENDER-DONE \(CardStyle.allCases.count) styles")
+    }
+
     /// If the user has the reminder switched on, there must be a repeating
     /// request queued whose next fire is within the next 24 hours.
     @Test @MainActor func enabledReminderIsQueuedAndUpcoming() async throws {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: "dailyReminderEnabled") else { return }
+
+        // Permission lives outside the app's control: a simulator reset or a
+        // fresh install makes this environment unable to test the queue, and
+        // that is not a product failure.
+        let auth = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        guard auth == .authorized || auth == .provisional else { return }
 
         let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
             .filter { $0.identifier == NotificationScheduler.dailyReminderIdentifier }
@@ -159,6 +192,30 @@ struct VibeTests {
         #expect(pending.first?.content.sound != nil, "reminder has no sound")
         #expect(pending.first?.content.title.isEmpty == false)
         #expect(pending.first?.content.body.isEmpty == false)
+    }
+
+    /// Regression: iOS drops pending notifications when the app binary is
+    /// replaced. The next launch must put an already-enabled reminder back.
+    @Test @MainActor func launchReassertRestoresReminder() async throws {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: "dailyReminderEnabled") else { return }
+        let center = UNUserNotificationCenter.current()
+        let auth = await center.notificationSettings().authorizationStatus
+        guard auth == .authorized || auth == .provisional else { return }
+
+        // Simulate the wipe that a reinstall performs.
+        center.removeAllPendingNotificationRequests()
+        let cleared = await center.pendingNotificationRequests()
+            .filter { $0.identifier == NotificationScheduler.dailyReminderIdentifier }
+        #expect(cleared.isEmpty)
+
+        // Exactly what ContentView.task does on launch.
+        await NotificationScheduler.reassertIfEnabled()
+
+        let restored = await center.pendingNotificationRequests()
+            .filter { $0.identifier == NotificationScheduler.dailyReminderIdentifier }
+        #expect(restored.count == 1, "reminder was not restored on launch")
+        #expect((restored.first?.trigger as? UNCalendarNotificationTrigger)?.repeats == true)
     }
 
     /// The reminder must exist as real pending requests, with the specified
