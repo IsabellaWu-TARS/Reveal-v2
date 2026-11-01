@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support — Reveal</title>
+<meta name="description" content="Help, frequently asked questions and contact for Reveal, a daily Bible verse and reflection app.">
+<meta name="theme-color" content="#FAF7F2">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2A2A2A; --muted:#5C5C5C;
+    --accent:#8C7A4E; --border:rgba(0,0,0,.08); --shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#161618; --card:#1E1E21; --text:#F2F2F2; --muted:#B8B2AA;
+      --accent:#D9C48C; --border:rgba(255,255,255,.12); --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:0 20px 80px; background:var(--bg); color:var(--text);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,
+      "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  .wrap{max-width:720px;margin:0 auto}
+  header{padding:52px 0 26px;text-align:center}
+  h1{font-size:28px;line-height:1.25;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:15px;margin:0}
+  main{background:var(--card);border:1px solid var(--border);border-radius:18px;
+       padding:8px 32px 32px;box-shadow:var(--shadow)}
+  h2{font-size:19px;margin:30px 0 10px;font-weight:700}
+  h3{font-size:15.5px;margin:22px 0 6px;font-weight:700}
+  p{margin:10px 0}
+  ul{margin:10px 0;padding-left:22px}
+  li{margin:6px 0}
+  a{color:var(--accent)}
+  .callout{border-left:3px solid #A2A569;background:rgba(162,165,105,.10);
+           padding:14px 18px;border-radius:0 10px 10px 0;margin:18px 0}
+  .callout p{margin:6px 0}
+  .pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;
+        text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);
+        border-radius:999px;padding:2px 10px;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{font-weight:700;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+  tr:last-child td{border-bottom:none}
+  footer{margin-top:32px;text-align:center;color:var(--muted);font-size:13px;line-height:1.9}
+  .lang-panel{display:none}
+  .lang-panel.active{display:block}
+  @media (max-width:600px){
+    header{padding:34px 0 18px}
+    h1{font-size:23px}
+    main{padding:6px 20px 24px;border-radius:14px}
+    body{padding:0 14px 60px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Reveal — Support</h1>
+  <p class="sub">One verse a day, one reflection, one small action.</p>
+</header>
+
+<div class="lang" role="tablist" aria-label="Language" style="display:flex;gap:8px;justify-content:center;padding:12px 0">
+  <button role="tab" aria-selected="true" onclick="showLang('en')"
+    style="font:inherit;font-size:14px;font-weight:600;padding:7px 18px;border-radius:999px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--accent)">English</button>
+  <button role="tab" aria-selected="false" onclick="showLang('zh')"
+    style="font:inherit;font-size:14px;font-weight:600;padding:7px 18px;border-radius:999px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted)">简体中文</button>
+</div>
+
+<main>
+<section id="panel-en" class="lang-panel active">
+
+  <h2>Getting started</h2>
+  <p>Reveal shows the same card to everyone on a given day. It changes at midnight, and it stays put if you close and reopen the app.</p>
+  <ul>
+    <li><strong>Flip the card</strong> — tap it. The front is the verse, the back is the reflection and the action.</li>
+    <li><strong>Favourite</strong> — the star in the top-right corner of the card.</li>
+    <li><strong>Write a note</strong> — tap the note area under the card while the card is flipped.</li>
+    <li><strong>Read the full chapter</strong> — open the Scripture page and tap the reference.</li>
+    <li><strong>Look back</strong> — the Calendar page shows every day, and opens any day you have already seen, favourited or noted.</li>
+    <li><strong>Daily reminder</strong> — Settings → Daily Reminders, then pick a time.</li>
+    <li><strong>Card text colour</strong> — Settings → Card Text Colour. Automatic, White, Ink, or any colour you like.</li>
+  </ul>
+
+  <h2>Common questions</h2>
+
+  <h3>The verse text is hard to read</h3>
+  <p>The default ink is white. On the paler cards that is genuinely low contrast — this is a trade-off we have left to you rather than force. Open <strong>Settings → Card Text Colour → Automatic</strong> and the app picks the most legible ink for each card.</p>
+
+  <h3>My reminder never arrives</h3>
+  <ul>
+    <li>Settings → Daily Reminders must be on, with a time set.</li>
+    <li>iOS Settings → Notifications → Reveal must allow notifications, with a sound and no Focus mode blocking it.</li>
+    <li>The reminder repeats daily, so it fires at the next occurrence of the time you picked — not immediately.</li>
+  </ul>
+
+  <h3>The full chapter did not load</h3>
+  <p>Chapter text is fetched from a public Bible API, so it needs a connection. The day's verse is always stored on your device and stays readable offline; the chapter area shows a message and a Retry button.</p>
+
+  <h3>Where does the Bible text come from?</h3>
+  <p>English: the World English Bible (public domain). Chinese: the Chinese Union Version, 1919 edition. Chapter text is requested live from <code>bible.helloao.org</code>. Attribution details are in the app under Settings → About Bible Sources.</p>
+
+  <h3>How do I delete my data?</h3>
+  <p>Notes, favourites, reading history and settings live only on your device. Clear a note in the note editor, tap the star again to remove a favourite, or delete the app to remove everything at once. Nothing is stored on a server, so there is nothing for us to delete on your behalf.</p>
+
+  <h3>Does Reveal collect anything?</h3>
+  <p>No. No accounts, no analytics, no advertising, no third-party SDKs. See the <a href="../privacy/">Privacy Policy</a> for the full detail.</p>
+
+  <h2>Contact</h2>
+  <div class="callout">
+    <p><strong>Email:</strong> <a href="mailto:revealmashal@gmail.com">revealmashal@gmail.com</a></p>
+    <p>Please include your iOS version, the app version from Settings → Version, and what you expected to happen.</p>
+  </div>
+
+  <h2>Links</h2>
+  <ul>
+    <li><a href="../privacy/">Privacy Policy</a></li>
+    <li><a href="https://worldenglish.bible" rel="noopener">World English Bible</a> (public domain)</li>
+    <li><a href="https://en.wikipedia.org/wiki/Chinese_Union_Version" rel="noopener">Chinese Union Version</a></li>
+  </ul>
+
+</section>
+
+<section id="panel-zh" class="lang-panel">
+
+  <h2>开始使用</h2>
+  <p>在同一天里，所有人看到的都是同一张卡片。卡片在午夜更换；关闭 App 再打开，卡片不会变。</p>
+  <ul>
+    <li><strong>翻卡</strong> —— 轻点卡片。正面是经文，背面是反思与行动。</li>
+    <li><strong>收藏</strong> —— 卡片右上角的星标。</li>
+    <li><strong>写笔记</strong> —— 在翻到背面时，点卡片下方的笔记区域。</li>
+    <li><strong>阅读全章</strong> —— 进入经文页，点击出处。</li>
+    <li><strong>回看</strong> —— 日历页可以看到每一天；已经看过、收藏或写过笔记的日期都能打开。</li>
+    <li><strong>每日提醒</strong> —— 设置 → 每日提醒，然后选择时间。</li>
+    <li><strong>卡片文字颜色</strong> —— 设置 → 卡片文字颜色。可选自动、白色、墨色，或任意颜色。</li>
+  </ul>
+
+  <h2>常见问题</h2>
+
+  <h3>经文太浅，看不清</h3>
+  <p>默认文字颜色为白色。在颜色较浅的卡片上，对比度确实很低——这一点我们交给你决定，而不是替你锁定。打开 <strong>设置 → 卡片文字颜色 → 自动</strong>，App 会为每张卡片自动挑选最易读的颜色。</p>
+
+  <h3>提醒没有出现</h3>
+  <ul>
+    <li>设置 → 每日提醒需要开启，并设定时间。</li>
+    <li>iOS 设置 → 通知 → Reveal 需要允许通知、允许声音，且未被专注模式拦截。</li>
+    <li>提醒是每天重复的，会在你设定时间的下一次到来时触发，而不是立刻触发。</li>
+  </ul>
+
+  <h3>全章经文加载不出来</h3>
+  <p>全章内容来自公开的圣经 API，需要联网。当天的经文始终保存在本机，离线也能阅读；全章区域会显示提示与「重试」按钮。</p>
+
+  <h3>经文来源</h3>
+  <p>英文：World English Bible（公有领域）。中文：官话和合本（1919 年版）。全章内容实时取自 <code>bible.helloao.org</code>。版权说明可在 App 内「设置 → 资料来源与版权声明」查看。</p>
+
+  <h3>如何删除我的数据</h3>
+  <p>笔记、收藏、阅读记录与设置都只保存在你的设备上。清空笔记、再次点击星标取消收藏，或直接删除 App 即可一次清除全部内容。我们没有任何服务器副本。</p>
+
+  <h3>Reveal 会收集数据吗</h3>
+  <p>不会。没有账号、没有分析统计、没有广告、没有第三方 SDK。详见<a href="../privacy/">隐私政策</a>。</p>
+
+  <h2>联系我们</h2>
+  <div class="callout">
+    <p><strong>邮箱：</strong><a href="mailto:revealmashal@gmail.com">revealmashal@gmail.com</a></p>
+    <p>请附上你的 iOS 版本、设置 → 版本 中显示的 App 版本，以及你期待的结果。</p>
+  </div>
+
+  <h2>相关链接</h2>
+  <ul>
+    <li><a href="../privacy/">隐私政策</a></li>
+    <li><a href="https://worldenglish.bible" rel="noopener">World English Bible</a>（公有领域）</li>
+    <li><a href="https://en.wikipedia.org/wiki/Chinese_Union_Version" rel="noopener">官话和合本</a></li>
+  </ul>
+
+</section>
+</main>
+
+<footer>
+  <p>Reveal Mashal · <a href="mailto:revealmashal@gmail.com">revealmashal@gmail.com</a></p>
+  <p>© 2026 Reveal Mashal</p>
+</footer>
+
+</div>
+<script>
+function showLang(lang){
+  document.getElementById('panel-en').classList.toggle('active', lang === 'en');
+  document.getElementById('panel-zh').classList.toggle('active', lang === 'zh');
+  var tabs = document.querySelectorAll('[role="tab"]');
+  tabs[0].setAttribute('aria-selected', lang === 'en');
+  tabs[1].setAttribute('aria-selected', lang === 'zh');
+  tabs[0].style.color = lang === 'en' ? 'var(--accent)' : 'var(--muted)';
+  tabs[1].style.color = lang === 'zh' ? 'var(--accent)' : 'var(--muted)';
+}
+window.showLang = showLang;
+</script>
+</body>
+</html>
