@@ -32,8 +32,10 @@ struct SettingsView: View {
 
     // Card colour — the whole gradient, not just the text.
     @AppStorage("cardTintMode") private var cardTintMode: String = CardTint.automatic.rawValue
-    @AppStorage("cardTintCustomHex") private var cardTintHex: String = "D6B8A8"
-    @State private var customTintColor: Color = Color(hex: "D6B8A8")
+    @AppStorage("cardTintTopHex") private var cardTintTopHex: String = "D6B8A8"
+    @AppStorage("cardTintBottomHex") private var cardTintBottomHex: String = "C08A72"
+    @State private var customTintTop: Color = Color(hex: "D6B8A8")
+    @State private var customTintBottom: Color = Color(hex: "C08A72")
 
     var body: some View {
         // P13: Pull the Settings cards toward the centre so the frame reads
@@ -177,7 +179,10 @@ struct SettingsView: View {
                                             ForEach(CardTint.allCases) { mode in
                                                 Button(mode.title(language: dailyCardStore.appLanguage)) {
                                                     cardTintMode = mode.rawValue
-                                                    if mode == .custom { customTintColor = Color(hex: cardTintHex) }
+                                                    if mode == .custom {
+                                                        customTintTop = Color(hex: cardTintTopHex)
+                                                        customTintBottom = Color(hex: cardTintBottomHex)
+                                                    }
                                                 }
                                             }
                                         } label: {
@@ -197,13 +202,23 @@ struct SettingsView: View {
 
                                         if cardTintMode == CardTint.custom.rawValue {
                                             ColorPicker(
-                                                dailyCardStore.appLanguage == "zh-Hans" ? "选择卡片颜色" : "Pick a card colour",
-                                                selection: $customTintColor,
+                                                dailyCardStore.appLanguage == "zh-Hans" ? "上方颜色" : "Top colour",
+                                                selection: $customTintTop,
                                                 supportsOpacity: false
                                             )
                                             .font(.system(size: 14))
-                                            .onChange(of: customTintColor) { _, newValue in
-                                                cardTintHex = newValue.hexString
+                                            .onChange(of: customTintTop) { _, newValue in
+                                                cardTintTopHex = newValue.hexString
+                                            }
+
+                                            ColorPicker(
+                                                dailyCardStore.appLanguage == "zh-Hans" ? "下方颜色" : "Bottom colour",
+                                                selection: $customTintBottom,
+                                                supportsOpacity: false
+                                            )
+                                            .font(.system(size: 14))
+                                            .onChange(of: customTintBottom) { _, newValue in
+                                                cardTintBottomHex = newValue.hexString
                                             }
 
                                             Button {
@@ -404,7 +419,8 @@ struct SettingsView: View {
         CardTintPalette(
             style: dailyCardStore.currentCard.map { CardStyle.forCardId($0.id) } ?? .roseDusk,
             mode: CardTint(rawValue: cardTintMode) ?? .automatic,
-            customHex: cardTintHex
+            topHex: cardTintTopHex,
+            bottomHex: cardTintBottomHex
         )
     }
 
@@ -414,8 +430,8 @@ struct SettingsView: View {
             return zh ? "每天自动更换颜色，与日期绑定。"
                       : "The card follows the daily palette — a different colour each day."
         }
-        return zh ? "颜色会应用到所有卡片；随时可以恢复每日默认。"
-                  : "Your colour applies to every card. Reset to daily default any time."
+        return zh ? "两种颜色会混合成 Reveal 风格的渐变，应用到所有卡片。"
+                  : "Your two colours are blended into a Reveal gradient and applied to every card."
     }
 
     // MARK: - Card text colour helpers

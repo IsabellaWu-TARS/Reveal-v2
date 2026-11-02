@@ -38,23 +38,27 @@ final class CardTintModeTests: XCTestCase {
 
         let defaults = UserDefaults.standard
         let tintMode = defaults.string(forKey: "cardTintMode")
-        let tintHex = defaults.string(forKey: "cardTintCustomHex")
+        let topHex = defaults.string(forKey: "cardTintTopHex")
+        let bottomHex = defaults.string(forKey: "cardTintBottomHex")
         let inkMode = defaults.string(forKey: "cardInkMode")
         defer {
             defaults.set(tintMode ?? CardTint.automatic.rawValue, forKey: "cardTintMode")
-            defaults.set(tintHex ?? "D6B8A8", forKey: "cardTintCustomHex")
+            defaults.set(topHex ?? "D6B8A8", forKey: "cardTintTopHex")
+            defaults.set(bottomHex ?? "C08A72", forKey: "cardTintBottomHex")
             defaults.set(inkMode ?? CardInk.white.rawValue, forKey: "cardInkMode")
         }
 
         // Automatic ink + a deep custom card: text must come out white.
         defaults.set(CardTint.custom.rawValue, forKey: "cardTintMode")
-        defaults.set("1F2A44", forKey: "cardTintCustomHex")           // luminance ≈ 0.02
+        defaults.set("1F2A44", forKey: "cardTintTopHex")             // near-black
+        defaults.set("14243A", forKey: "cardTintBottomHex")
         defaults.set(CardInk.automatic.rawValue, forKey: "cardInkMode")
         let deep = try XCTUnwrap(render(card, style))
         attach(deep, "tint-custom-deep-automatic-ink")
 
         // A pale custom card: same setting must flip to espresso ink.
-        defaults.set("F3E4D2", forKey: "cardTintCustomHex")           // luminance ≈ 0.79
+        defaults.set("F3E4D2", forKey: "cardTintTopHex")             // pale cream
+        defaults.set("E6D2B8", forKey: "cardTintBottomHex")
         let pale = try XCTUnwrap(render(card, style))
         attach(pale, "tint-custom-pale-automatic-ink")
 
@@ -67,6 +71,26 @@ final class CardTintModeTests: XCTestCase {
         XCTAssertNotEqual(png(deep), png(original), "custom tint did not change the card")
         XCTAssertNotEqual(png(pale), png(original), "custom tint did not change the card")
         XCTAssertNotEqual(png(deep), png(pale), "custom tint ignored the chosen colour")
+    }
+
+    @MainActor
+    func testTwoColoursBlendIntoOneGradient() throws {
+        let cards = DailyCardStore.shared.allCards
+        let card = try XCTUnwrap(cards.first)
+        let style = CardStyle.forCardId(card.id)
+
+        let blackToGreen = CardTintPalette(style: style, mode: .custom,
+                                           topHex: "101010", bottomHex: "2F7A46")
+        let greenToBlack = CardTintPalette(style: style, mode: .custom,
+                                           topHex: "2F7A46", bottomHex: "101010")
+
+        XCTAssertEqual(blackToGreen.stops.count, 3, "a custom card is still a three-stop gradient")
+        XCTAssertNotEqual(blackToGreen.stops, greenToBlack.stops, "order of the two colours must matter")
+
+        // The middle stop must sit between the two choices, not equal either.
+        let onlyGreen = CardTintPalette(style: style, mode: .custom,
+                                        topHex: "2F7A46", bottomHex: "2F7A46")
+        XCTAssertNotEqual(blackToGreen.stops, onlyGreen.stops, "blending was ignored")
     }
 
     /// The Automatic ink choice is driven by luminance, so it must always pick
@@ -88,6 +112,40 @@ final class CardTintModeTests: XCTestCase {
             let chosenIsWhite = resolved.body == .white
             XCTAssertEqual(chosenIsWhite, white > espresso,
                            "\(hex): picked \(chosenIsWhite ? "white" : "espresso") but the other has more contrast")
+        }
+    }
+
+    /// Visual proof of the two-colour mix, for review.
+    @MainActor
+    func testRenderTintPairExamples() throws {
+        let card = try XCTUnwrap(DailyCardStore.shared.allCards.first)
+        let style = CardStyle.forCardId(card.id)
+        let defaults = UserDefaults.standard
+        let tintMode = defaults.string(forKey: "cardTintMode")
+        let topHex = defaults.string(forKey: "cardTintTopHex")
+        let bottomHex = defaults.string(forKey: "cardTintBottomHex")
+        let inkMode = defaults.string(forKey: "cardInkMode")
+        defer {
+            defaults.set(tintMode ?? CardTint.automatic.rawValue, forKey: "cardTintMode")
+            defaults.set(topHex ?? "D6B8A8", forKey: "cardTintTopHex")
+            defaults.set(bottomHex ?? "C08A72", forKey: "cardTintBottomHex")
+            defaults.set(inkMode ?? CardInk.white.rawValue, forKey: "cardInkMode")
+        }
+
+        defaults.set(CardTint.custom.rawValue, forKey: "cardTintMode")
+        defaults.set(CardInk.automatic.rawValue, forKey: "cardInkMode")
+
+        let pairs = [
+            ("black-green", "141414", "2F7A46"),
+            ("green-black", "2F7A46", "141414"),
+            ("navy-gold",   "1B2A4A", "D9A441"),
+            ("clay-rose",   "C2705A", "E7B9C4")
+        ]
+        for (name, top, bottom) in pairs {
+            defaults.set(top, forKey: "cardTintTopHex")
+            defaults.set(bottom, forKey: "cardTintBottomHex")
+            let image = try XCTUnwrap(render(card, style))
+            attach(image, "pair-\(name)")
         }
     }
 

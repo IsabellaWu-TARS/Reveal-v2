@@ -69,6 +69,7 @@ struct ContentView: View {
             // If the reminder is on, re-queue it once per launch. iOS discards
             // an app's pending local notifications when the binary is replaced,
             // so without this an update silently stops the reminder.
+            CardTintPalette.migrateLegacyTint()
             await NotificationScheduler.reassertIfEnabled()
         }
     }
