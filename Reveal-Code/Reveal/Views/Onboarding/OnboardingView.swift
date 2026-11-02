@@ -14,6 +14,7 @@ struct OnboardingView: View {
     @EnvironmentObject var dailyCardStore: DailyCardStore
     @State private var cardFlipped = false
     @State private var rotation: Double = 0
+    @State private var step: Int = 0
 
     private var lang: String { dailyCardStore.appLanguage }
     private var currentCard: RevealCard? { dailyCardStore.cardForOnboarding(at: 0) }
@@ -21,22 +22,34 @@ struct OnboardingView: View {
     // BUG FIX (P0-1): Previously only English strings were provided, so Chinese
     // users saw English tutorials. Now we pick the right array based on appLanguage.
     private let stepTextsEN = [
-        "Here is the verse of the day. Tap the card to reveal reflection.",
-        "Tap to see the reflection question and action step.",
-        "Tap the Bible icon to read the full passage.",
-        "Tap Calendar to revisit all verses you've studied.",
-        "Tap Note to write your personal reflection. It saves automatically.",
-        "Start your journey now!"
+        "Tap the card to turn it over — the verse is on the front, the reflection and one small action are on the back.",
+        "The calendar keeps every day you have read. Tap a past day to open it again.",
+        "Tap the note button to write your reflection. It saves itself as you type.",
+        "Read the whole chapter from the book button. In Settings you can turn on a daily reminder, or choose your own card and text colours."
     ]
 
     private let stepTextsZH = [
-        "这是今日经文。点击卡片查看反思内容。",
-        "再次点击卡片，查看反思问题与行动建议。",
-        "点击左上角圣经图标，查看完整章节。",
-        "点击日历图标，回顾你学习过的所有经文。",
-        "点击笔记按钮，写下你的个人反思（自动保存）。",
-        "开启你的灵修之旅吧！"
+        "轻点卡片翻面 —— 正面是经文，背面是反思和一个小行动。",
+        "日历会记下你读过的每一天，点开过去的日期就能重读。",
+        "点笔记按钮写下你的感想，边写边自动保存。",
+        "用书页按钮阅读整章经文；在设置里可以开启每日提醒，或自定义卡片与文字颜色。"
     ]
+
+    /// Real top inset of the window. The page ZStack reports zero insets
+    /// because `AppBackground` ignores the safe area, which left "Skip" under
+    /// the status bar.
+    private var windowTopInset: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first?.safeAreaInsets.top ?? 47
+    }
+
+    private var buttonTitle: String {
+        let last = step >= stepTexts.count - 1
+        if lang == "zh-Hans" { return last ? "开始体验" : "下一步" }
+        return last ? "Get Started" : "Next"
+    }
 
     private var stepTexts: [String] {
         lang == "zh-Hans" ? stepTextsZH : stepTextsEN
@@ -47,14 +60,7 @@ struct OnboardingView: View {
             AppBackground()
 
             VStack {
-                HStack {
-                    Spacer()
-                    Button(lang == "zh-Hans" ? "跳过" : "Skip") {
-                        withAnimation { showOnboarding = false }
-                    }
-                    .foregroundColor(Design.accent.opacity(0.6))
-                    .padding()
-                }
+                Spacer(minLength: windowTopInset)
 
                 Spacer()
 
@@ -65,19 +71,49 @@ struct OnboardingView: View {
                         rotation: $rotation,
                         lang: lang
                     )
+                    .frame(maxWidth: .infinity, maxHeight: 430)
                 }
 
-                TutorialBubble(text: stepTexts[0])
-                    .padding(.bottom, 44)
+                TutorialBubble(text: stepTexts[min(step, stepTexts.count - 1)])
+                    .id(step)
+                    .transition(.opacity)
+                    .padding(.top, 10)
 
-                HStack(spacing: 20) {
-                    Button(lang == "zh-Hans" ? "开始体验" : "Get Started") {
+                // Page dots — four short steps, nothing to scroll.
+                HStack(spacing: 8) {
+                    ForEach(0..<stepTexts.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == step ? Design.accent : Design.accent.opacity(0.25))
+                            .frame(width: 7, height: 7)
+                    }
+                }
+                .padding(.top, 10)
+                .padding(.bottom, 14)
+
+                HStack(spacing: 16) {
+                    Button(lang == "zh-Hans" ? "跳过" : "Skip") {
                         withAnimation { showOnboarding = false }
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Design.accent.opacity(0.7))
+
+                    Spacer(minLength: 0)
+
+                    Button(buttonTitle) {
+                        if step >= stepTexts.count - 1 {
+                            withAnimation { showOnboarding = false }
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.25)) { step += 1 }
+                        }
                     }
                     .buttonStyle(OnboardingPrimaryButtonStyle())
                 }
-                .padding(.bottom, 40)
+                .padding(.horizontal, 32)
+                .padding(.top, 4)
+                .padding(.bottom, 8)
             }
+            .padding(.bottom, 10)
+
         }
     }
 }
@@ -143,9 +179,9 @@ struct OnboardingCardDemo: View {
                 .opacity(cardFlipped ? 0 : 1)
                 .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 500)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 24)
+            .padding(.vertical, 8)
             .onTapGesture {
                 withAnimation(Design.springAnim) {
                     cardFlipped.toggle()

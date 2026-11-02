@@ -37,7 +37,7 @@ final class LayoutAuditTests: XCTestCase {
         sleep(4)
 
         // onboarding, if this install is fresh
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -82,7 +82,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -160,7 +160,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -210,7 +210,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -236,7 +236,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -265,7 +265,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -295,7 +295,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(5)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -341,7 +341,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -355,6 +355,26 @@ final class LayoutAuditTests: XCTestCase {
         shot("A1-settings-ink-row")
         app.swipeUp(); sleep(1)
         shot("A2-settings-tint-row")
+    }
+
+    /// The first-launch guide: four steps, one visible at a time.
+    func testCaptureOnboardingGuide() throws {
+        let app = XCUIApplication()
+        app.launch()
+        sleep(5)
+
+        shot("G1-guide-step1")
+        for i in 2...4 {
+            let next = app.buttons["Next"].firstMatch
+            if next.waitForExistence(timeout: 4), next.isHittable {
+                next.tap(); sleep(1)
+                shot("G\(i)-guide-step\(i)")
+            }
+        }
+        let start = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Get Started' OR label CONTAINS '开始体验'")
+        ).firstMatch
+        if start.waitForExistence(timeout: 4), start.isHittable { start.tap(); sleep(2) }
     }
 
     /// Captures the launch screen mid-animation. Run once with the simulator in
@@ -373,7 +393,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -409,7 +429,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }
@@ -462,7 +482,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用"] {
+        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
             let b = app.buttons[label]
             if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
         }

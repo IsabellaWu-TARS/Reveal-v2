@@ -34,6 +34,9 @@ struct ContentView: View {
         ZStack {
             if showSplash {
                 SplashView(showSplash: $showSplash, isFirstLaunch: !hasLaunchedBefore) {
+                    // Nothing used to set this, so the guide never appeared on a
+                    // first launch — the flag alone does not open it.
+                    if !hasLaunchedBefore { showOnboarding = true }
                     UserDefaults.standard.set(true, forKey: "HasLaunchedBefore")
                 }
             } else if showOnboarding {
