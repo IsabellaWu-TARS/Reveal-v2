@@ -570,6 +570,12 @@ private struct DateDetailSheet: View {
         Color(hex: "C7C7CC")
     }
 
+    /// Only today's card follows the chosen colours; past days keep the
+    /// palette they were originally shown with.
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(date)
+    }
+
     private var dateLabel: String {
         let f = DateFormatter()
         f.dateFormat = language == "zh-Hans" ? "M月d日" : "MMMM d"
@@ -639,6 +645,7 @@ private struct DateDetailSheet: View {
                 onFavorite: { self.dailyCardStore.toggleFavorite(card.id) },
                 isFavorite: self.dailyCardStore.isFavorite(card.id),
                 showsFavoriteButton: false,
+                usesUserTint: self.isToday,
                 showsReturnHint: false
             )
             .opacity(self.isFlipped ? 1 : 0)
@@ -651,6 +658,7 @@ private struct DateDetailSheet: View {
                 onFavorite: { self.dailyCardStore.toggleFavorite(card.id) },
                 isFavorite: self.dailyCardStore.isFavorite(card.id),
                 showsFavoriteButton: false,
+                usesUserTint: self.isToday,
                 headline: self.language == "zh-Hans" ? "经文" : "Verse"
             )
             .opacity(self.isFlipped ? 0 : 1)

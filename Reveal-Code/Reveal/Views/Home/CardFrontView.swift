@@ -18,6 +18,9 @@ struct CardFrontView: View {
     /// Hidden when the card is rendered for sharing, so the exported PNG
     /// doesn't bake in the favourite star. Default keeps the live card as is.
     var showsFavoriteButton: Bool = true
+    /// Past days keep the palette they were shown with; only today's card
+    /// follows the person's chosen colours.
+    var usesUserTint: Bool = true
 
     /// Override for the small line above the verse. The calendar shows past
     /// days, where "Today's Verse" would be wrong. Defaults to nil so the
@@ -25,14 +28,16 @@ struct CardFrontView: View {
     var headline: String? = nil
 
     @AppStorage("cardTintMode") private var tintModeRaw: String = CardTint.automatic.rawValue
-    @AppStorage("cardTintCustomHex") private var tintCustomHex: String = "D6B8A8"
+    @AppStorage("cardTintTopHex") private var tintTopHex: String = "D6B8A8"
+    @AppStorage("cardTintBottomHex") private var tintBottomHex: String = "C08A72"
 
     /// Background for this face: the day's gradient or the person's own colour.
     private var tintPalette: CardTintPalette {
         CardTintPalette(
             style: style,
-            mode: CardTint(rawValue: tintModeRaw) ?? .automatic,
-            customHex: tintCustomHex
+            mode: usesUserTint ? (CardTint(rawValue: tintModeRaw) ?? .automatic) : .automatic,
+            topHex: tintTopHex,
+            bottomHex: tintBottomHex
         )
     }
 

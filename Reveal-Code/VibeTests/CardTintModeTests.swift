@@ -15,14 +15,15 @@ import UIKit
 final class CardTintModeTests: XCTestCase {
 
     @MainActor
-    private func render(_ card: RevealCard, _ style: CardStyle) -> UIImage? {
+    private func render(_ card: RevealCard, _ style: CardStyle, usesUserTint: Bool = true) -> UIImage? {
         let view = CardFrontView(
             card: card,
             language: "en",
             style: style,
             onFavorite: {},
             isFavorite: false,
-            showsFavoriteButton: false
+            showsFavoriteButton: false,
+            usesUserTint: usesUserTint
         )
         .frame(width: 360, height: 572)
         let renderer = ImageRenderer(content: view)
@@ -113,6 +114,41 @@ final class CardTintModeTests: XCTestCase {
             XCTAssertEqual(chosenIsWhite, white > espresso,
                            "\(hex): picked \(chosenIsWhite ? "white" : "espresso") but the other has more contrast")
         }
+    }
+
+    /// Only today's card follows the chosen colours. A past day keeps the
+    /// palette it was originally shown with, which is what the calendar passes.
+    @MainActor
+    func testPastDayIgnoresTheChosenColour() throws {
+        let card = try XCTUnwrap(DailyCardStore.shared.allCards.first)
+        let style = CardStyle.forCardId(card.id)
+        let defaults = UserDefaults.standard
+        let tintMode = defaults.string(forKey: "cardTintMode")
+        let topHex = defaults.string(forKey: "cardTintTopHex")
+        let bottomHex = defaults.string(forKey: "cardTintBottomHex")
+        let inkMode = defaults.string(forKey: "cardInkMode")
+        defer {
+            defaults.set(tintMode ?? CardTint.automatic.rawValue, forKey: "cardTintMode")
+            defaults.set(topHex ?? "D6B8A8", forKey: "cardTintTopHex")
+            defaults.set(bottomHex ?? "C08A72", forKey: "cardTintBottomHex")
+            defaults.set(inkMode ?? CardInk.white.rawValue, forKey: "cardInkMode")
+        }
+
+        // A deliberately loud custom colour.
+        defaults.set(CardTint.custom.rawValue, forKey: "cardTintMode")
+        defaults.set("1B2A4A", forKey: "cardTintTopHex")
+        defaults.set("2F7A46", forKey: "cardTintBottomHex")
+        defaults.set(CardInk.automatic.rawValue, forKey: "cardInkMode")
+
+        let today = try XCTUnwrap(render(card, style, usesUserTint: true))
+        let pastDay = try XCTUnwrap(render(card, style, usesUserTint: false))
+
+        // What the same card looks like with no custom colour at all.
+        defaults.set(CardTint.automatic.rawValue, forKey: "cardTintMode")
+        let plain = try XCTUnwrap(render(card, style))
+
+        XCTAssertEqual(png(pastDay), png(plain), "a past day must render the default palette")
+        XCTAssertNotEqual(png(today), png(plain), "today must honour the chosen colour")
     }
 
     /// Visual proof of the two-colour mix, for review.
