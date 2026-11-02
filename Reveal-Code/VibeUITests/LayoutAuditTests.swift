@@ -10,6 +10,24 @@ import XCTest
 
 final class LayoutAuditTests: XCTestCase {
 
+    /// Walks the first-run flow: language → four coach marks → Get Started.
+    /// Safe to call when onboarding is not showing.
+    static func dismissOnboarding(_ app: XCUIApplication) {
+        for _ in 0..<8 {
+            if app.buttons["language-en"].exists {
+                app.buttons["language-en"].tap(); usleep(700_000); continue
+            }
+            if app.buttons["Next"].exists {
+                app.buttons["Next"].tap(); usleep(600_000); continue
+            }
+            if app.buttons["Get Started"].exists {
+                app.buttons["Get Started"].tap(); usleep(800_000); return
+            }
+            return
+        }
+    }
+
+
     override func setUpWithError() throws {
         continueAfterFailure = true
     }
@@ -37,10 +55,7 @@ final class LayoutAuditTests: XCTestCase {
         sleep(4)
 
         // onboarding, if this install is fresh
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         shot("10-home")
 
@@ -82,10 +97,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         // Settings is the bottom-right corner button on the home screen.
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
@@ -160,10 +172,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
         if gear.waitForExistence(timeout: 3), gear.isHittable {
@@ -210,10 +219,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
             .press(forDuration: 1.0)
@@ -236,10 +242,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
         if gear.waitForExistence(timeout: 3), gear.isHittable {
@@ -265,10 +268,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         app.buttons["Calendar"].firstMatch.tap()
         sleep(3)
@@ -295,10 +295,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(5)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         // Flip the card (front → back).
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
@@ -341,10 +338,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
         if gear.waitForExistence(timeout: 3), gear.isHittable { gear.tap() }
@@ -357,13 +351,20 @@ final class LayoutAuditTests: XCTestCase {
         shot("A2-settings-tint-row")
     }
 
-    /// The first-launch guide: four steps, one visible at a time.
+    /// The first-launch guide: language choice, then four coach marks.
     func testCaptureOnboardingGuide() throws {
         let app = XCUIApplication()
         app.launch()
         sleep(5)
 
+        shot("G0-language")
+
+        let english = app.buttons["language-en"].firstMatch
+        if english.waitForExistence(timeout: 4), english.isHittable {
+            english.tap(); sleep(2)
+        }
         shot("G1-guide-step1")
+
         for i in 2...4 {
             let next = app.buttons["Next"].firstMatch
             if next.waitForExistence(timeout: 4), next.isHittable {
@@ -393,10 +394,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         let share = app.buttons.matching(identifier: "square.and.arrow.up").firstMatch
         if share.waitForExistence(timeout: 3), share.isHittable {
@@ -429,10 +427,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         // Settings (bottom-right).
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
@@ -482,10 +477,7 @@ final class LayoutAuditTests: XCTestCase {
         app.launch()
         sleep(4)
 
-        for label in ["Next", "下一步", "Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "Next", "Next", "Next"] {
-            let b = app.buttons[label]
-            if b.waitForExistence(timeout: 1.5), b.isHittable { b.tap(); sleep(1) }
-        }
+        Self.dismissOnboarding(app)
 
         // The Notes pill sits at the bottom centre of the home screen.
         let pill = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'note'")).firstMatch
