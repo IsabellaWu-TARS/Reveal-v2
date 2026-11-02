@@ -22,6 +22,18 @@ struct CardBackView: View {
     /// person holding the phone, not part of the artwork.
     var showsReturnHint: Bool = true
 
+    @AppStorage("cardTintMode") private var tintModeRaw: String = CardTint.automatic.rawValue
+    @AppStorage("cardTintCustomHex") private var tintCustomHex: String = "D6B8A8"
+
+    /// Background for this face: the day's gradient or the person's own colour.
+    private var tintPalette: CardTintPalette {
+        CardTintPalette(
+            style: style,
+            mode: CardTint(rawValue: tintModeRaw) ?? .automatic,
+            customHex: tintCustomHex
+        )
+    }
+
     @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
     @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
 
@@ -29,7 +41,7 @@ struct CardBackView: View {
     /// in Settings → Card Text Colour.
     private var inkPalette: CardInkPalette {
         CardInkPalette(
-            style: style,
+            isDeep: tintPalette.isDeep,
             mode: CardInk(rawValue: inkModeRaw) ?? .automatic,
             customHex: inkCustomHex
         )
@@ -49,7 +61,7 @@ struct CardBackView: View {
         ZStack {
             // ── Card base: same daily gradient as the front.
             RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(style.cardBackground())
+                .fill(tintPalette.gradient)
                 .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 10)
 
             VStack(alignment: .leading, spacing: 22) {

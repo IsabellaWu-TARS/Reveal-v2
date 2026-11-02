@@ -30,6 +30,11 @@ struct SettingsView: View {
     @AppStorage("cardInkCustomHex") private var cardInkHex: String = "FFFFFF"
     @State private var customInkColor: Color = .white
 
+    // Card colour — the whole gradient, not just the text.
+    @AppStorage("cardTintMode") private var cardTintMode: String = CardTint.automatic.rawValue
+    @AppStorage("cardTintCustomHex") private var cardTintHex: String = "D6B8A8"
+    @State private var customTintColor: Color = Color(hex: "D6B8A8")
+
     var body: some View {
         // P13: Pull the Settings cards toward the centre so the frame reads
         // tighter (per user feedback: "可以往中间紧凑一点"). We cap the scroll
@@ -154,6 +159,63 @@ struct SettingsView: View {
                                         }
 
                                         Text(hintText)
+                                            .font(.system(size: 12, weight: .light))
+                                            .foregroundColor(Color(hex: "6B6B6B"))
+                                    }
+                                }
+
+                                // Card Colour
+                                SettingsCard {
+                                    VStack(alignment: .leading, spacing: 14) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "paintpalette.fill").foregroundColor(Design.accent)
+                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "卡片颜色" : "Card Colour")
+                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                        }
+
+                                        Menu {
+                                            ForEach(CardTint.allCases) { mode in
+                                                Button(mode.title(language: dailyCardStore.appLanguage)) {
+                                                    cardTintMode = mode.rawValue
+                                                    if mode == .custom { customTintColor = Color(hex: cardTintHex) }
+                                                }
+                                            }
+                                        } label: {
+                                            HStack(spacing: 10) {
+                                                Circle()
+                                                    .fill(LinearGradient(colors: [currentTintTop, currentTintBottom], startPoint: .top, endPoint: .bottom))
+                                                    .frame(width: 18, height: 18)
+                                                    .overlay(Circle().stroke(Color.primary.opacity(0.15), lineWidth: 1))
+                                                Text(currentTintTitle)
+                                                    .foregroundColor(Design.accent)
+                                                Spacer()
+                                                Image(systemName: "chevron.down").foregroundColor(Design.accent.opacity(0.6))
+                                            }
+                                            .padding(12)
+                                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.1)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.15), lineWidth: 1)))
+                                        }
+
+                                        if cardTintMode == CardTint.custom.rawValue {
+                                            ColorPicker(
+                                                dailyCardStore.appLanguage == "zh-Hans" ? "选择卡片颜色" : "Pick a card colour",
+                                                selection: $customTintColor,
+                                                supportsOpacity: false
+                                            )
+                                            .font(.system(size: 14))
+                                            .onChange(of: customTintColor) { _, newValue in
+                                                cardTintHex = newValue.hexString
+                                            }
+
+                                            Button {
+                                                cardTintMode = CardTint.automatic.rawValue
+                                            } label: {
+                                                Text(dailyCardStore.appLanguage == "zh-Hans" ? "恢复每日默认颜色" : "Reset to daily default")
+                                                    .font(.system(size: 13, weight: .medium))
+                                                    .foregroundColor(Design.accent)
+                                            }
+                                        }
+
+                                        Text(tintHintText)
                                             .font(.system(size: 12, weight: .light))
                                             .foregroundColor(Color(hex: "6B6B6B"))
                                     }
@@ -323,6 +385,37 @@ struct SettingsView: View {
         let version = info?["CFBundleShortVersionString"] as? String ?? "—"
         let build = info?["CFBundleVersion"] as? String ?? "—"
         return "\(version) (\(build))"
+    }
+
+    // MARK: - Card colour helpers
+
+    private var currentTintTitle: String {
+        (CardTint(rawValue: cardTintMode) ?? .automatic).title(language: dailyCardStore.appLanguage)
+    }
+
+    /// Swatch for the row: today's gradient, or the chosen colour.
+    private var currentTintTop: Color {
+        resolvedTint.stops.first ?? Design.paperBackground
+    }
+    private var currentTintBottom: Color {
+        resolvedTint.stops.last ?? Design.paperBackground
+    }
+    private var resolvedTint: CardTintPalette {
+        CardTintPalette(
+            style: dailyCardStore.currentCard.map { CardStyle.forCardId($0.id) } ?? .roseDusk,
+            mode: CardTint(rawValue: cardTintMode) ?? .automatic,
+            customHex: cardTintHex
+        )
+    }
+
+    private var tintHintText: String {
+        let zh = dailyCardStore.appLanguage == "zh-Hans"
+        if cardTintMode == CardTint.automatic.rawValue {
+            return zh ? "每天自动更换颜色，与日期绑定。"
+                      : "The card follows the daily palette — a different colour each day."
+        }
+        return zh ? "颜色会应用到所有卡片；随时可以恢复每日默认。"
+                  : "Your colour applies to every card. Reset to daily default any time."
     }
 
     // MARK: - Card text colour helpers

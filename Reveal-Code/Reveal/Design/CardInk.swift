@@ -43,13 +43,15 @@ struct CardInkPalette {
     let tertiary: Color
     let chipFill: Color
 
-    init(style: CardStyle, mode: CardInk, customHex: String) {
+    /// `isDeep` comes from the resolved card background, so Automatic ink keeps
+    /// working when the card colour is a custom one.
+    init(isDeep: Bool, mode: CardInk, customHex: String) {
         switch mode {
         case .automatic:
-            body = style.ink
-            secondary = style.inkSecondary
-            tertiary = style.inkTertiary
-            chipFill = style.inkChipFill
+            body = isDeep ? .white : Design.paperInkDeep
+            secondary = isDeep ? Color.white.opacity(0.88) : Design.paperInk
+            tertiary = isDeep ? Color.white.opacity(0.62) : Design.paperInk.opacity(0.78)
+            chipFill = isDeep ? Color.white.opacity(0.18) : Design.paperInkDeep.opacity(0.10)
         case .white:
             body = .white
             secondary = .white.opacity(0.88)

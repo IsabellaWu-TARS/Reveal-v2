@@ -353,6 +353,8 @@ final class LayoutAuditTests: XCTestCase {
 
         app.swipeUp(); sleep(1)
         shot("A1-settings-ink-row")
+        app.swipeUp(); sleep(1)
+        shot("A2-settings-tint-row")
     }
 
     /// Captures the launch screen mid-animation. Run once with the simulator in

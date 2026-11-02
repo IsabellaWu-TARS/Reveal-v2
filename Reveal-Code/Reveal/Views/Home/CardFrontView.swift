@@ -24,6 +24,18 @@ struct CardFrontView: View {
     /// home card is untouched.
     var headline: String? = nil
 
+    @AppStorage("cardTintMode") private var tintModeRaw: String = CardTint.automatic.rawValue
+    @AppStorage("cardTintCustomHex") private var tintCustomHex: String = "D6B8A8"
+
+    /// Background for this face: the day's gradient or the person's own colour.
+    private var tintPalette: CardTintPalette {
+        CardTintPalette(
+            style: style,
+            mode: CardTint(rawValue: tintModeRaw) ?? .automatic,
+            customHex: tintCustomHex
+        )
+    }
+
     @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
     @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
 
@@ -31,7 +43,7 @@ struct CardFrontView: View {
     /// in Settings → Card Text Colour.
     private var inkPalette: CardInkPalette {
         CardInkPalette(
-            style: style,
+            isDeep: tintPalette.isDeep,
             mode: CardInk(rawValue: inkModeRaw) ?? .automatic,
             customHex: inkCustomHex
         )
@@ -62,7 +74,7 @@ struct CardFrontView: View {
             //    gradient (top → bottom, 3 stops). Text ink follows the
             //    gradient (see CardStyle.ink) so it stays readable.
         RoundedRectangle(cornerRadius: 32, style: .continuous)
-            .fill(style.cardBackground())
+            .fill(tintPalette.gradient)
                 .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 10)
 
             // ── Layout: a small "Today's Verse" caption sits at the top
