@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var cardDayIndex: Int = 0
 
     var body: some View {
+        ZStack {
         GeometryReader { geo in
             let screenW = geo.size.width
             let screenH = geo.size.height
@@ -211,29 +212,48 @@ struct HomeView: View {
             cardDayIndex = Calendar.current.component(.day, from: Date())
             dailyCardStore.markTodayViewed()
         }
-        // The note editor used to be a hand-rolled overlay inside the page
-        // ZStack; that ZStack's coordinate space did not match the screen, so
-        // the card hung off the right edge. A sheet is anchored to the window,
-        // so the width and the keyboard insets are always correct.
-        .fullScreenCover(isPresented: $notesStore.isNoteEditorPresented, onDismiss: { notesStore.save() }) {
-            ZStack {
-                Color.black.opacity(0.45)
-                    .ignoresSafeArea()
-                    .onTapGesture { notesStore.isNoteEditorPresented = false }
+        // The note editor is an overlay, not a fullScreenCover. A cover (and a
+        // sheet) animates the page behind it into a shrunken card, which made
+        // the whole screen shift every time a note opened. As an overlay the
+        // card keeps its exact size and position; only the editor fades in.
+        // The page also ignores the keyboard so the card does not move up when
+        // the note field becomes first responder.
+        .ignoresSafeArea(.keyboard, edges: .bottom)
 
-                if let card = dailyCardStore.currentCard {
-                    NoteEditorCard(
-                        noteText: $notesStore.noteText,
-                        card: card,
-                        language: dailyCardStore.appLanguage,
-                        onClose: { notesStore.isNoteEditorPresented = false }
-                    )
-                    .padding(.horizontal, Design.horizontalPadding)
-                    .frame(maxWidth: .infinity)
-                }
+            if notesStore.isNoteEditorPresented {
+                noteOverlay
             }
-            .presentationBackground(.clear)
         }
+        .animation(.easeInOut(duration: 0.2), value: notesStore.isNoteEditorPresented)
+    }
+
+    // MARK: - Note editor overlay
+
+    @ViewBuilder
+    private var noteOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    notesStore.save()
+                    notesStore.isNoteEditorPresented = false
+                }
+
+            if let card = dailyCardStore.currentCard {
+                NoteEditorCard(
+                    noteText: $notesStore.noteText,
+                    card: card,
+                    language: dailyCardStore.appLanguage,
+                    onClose: {
+                        notesStore.save()
+                        notesStore.isNoteEditorPresented = false
+                    }
+                )
+                .padding(.horizontal, Design.horizontalPadding)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .transition(.opacity)
     }
 
     // MARK: - Outer Action Button (P9)
