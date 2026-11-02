@@ -8,7 +8,6 @@
 //  Shape of the real API (verified against the live service):
 //
 //    GET https://bible.helloao.org/api/eng_web/JHN/3.json
-//    GET https://bible.helloao.org/api/cmn_cu1/JHN/3.json
 //
 //    { "translation": {...},
 //      "book":   { "id": "JHN", "name": "John", ... },
@@ -18,7 +17,11 @@
 //                                  "content": [ "text" | {"text": "...", "poem": 1} ] } ] } }
 //
 //  No API key, no Info.plist entry, no ATS exception: plain HTTPS GETs.
-//  Translation ids: eng_web (World English Bible) / cmn_cu1 (新标点和合本).
+//  Translation id: eng_web (World English Bible, public domain).
+//
+//  Chinese never comes from here: the 1919 和合本 is bundled and read offline
+//  by ChineseBibleStore. The API's Chinese id (cmn_cu1) is the 1989
+//  new-punctuation edition, which is not ours to redistribute.
 //
 
 import Foundation
@@ -54,8 +57,7 @@ actor BibleAPIService {
     static let shared = BibleAPIService()
 
     enum Translation: String, Sendable {
-        case web = "eng_web"    // World English Bible
-        case cuv = "cmn_cu1"    // 新标点和合本
+        case web = "eng_web"    // World English Bible, public domain
     }
 
     enum APIError: LocalizedError {
@@ -99,10 +101,6 @@ actor BibleAPIService {
 
     // MARK: Public
 
-    static func translation(for language: String) -> Translation {
-        language == "zh-Hans" ? .cuv : .web
-    }
-
     /// Book name as used by the bundled cards ("Psalm", "1 Corinthians") → USFM.
     static func usfmCode(for book: String) -> String? {
         if let direct = bookCodes[book] { return direct }
@@ -113,9 +111,18 @@ actor BibleAPIService {
 
     /// Fetches (or returns a cached) whole chapter.
     func chapter(book: String, chapter number: Int, language: String) async throws -> BibleChapter {
-        let translation = Self.translation(for: language)
         guard let usfm = Self.usfmCode(for: book) else { throw APIError.unknownBook(book) }
 
+        // Chinese reads the bundled 1919 text: no request, no API, no 1989 edition.
+        if language == "zh-Hans" {
+            return try await ChineseBibleStore.shared.chapter(
+                usfm: usfm,
+                number: number,
+                fallbackBookName: book
+            )
+        }
+
+        let translation = Translation.web
         let key = Key(translation: translation, usfm: usfm, chapter: number)
         if let cached = cache[key] { return cached }
 

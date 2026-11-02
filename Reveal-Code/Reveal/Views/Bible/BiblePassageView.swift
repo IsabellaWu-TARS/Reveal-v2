@@ -23,7 +23,8 @@ struct BiblePassageView: View {
     //   • Verse text (Georgia serif, paper-cream surface) — straight from the
     //     bundled JSON, so it renders instantly and works offline
     //   • The full chapter, fetched from bible.helloao.org
-    //     (eng_web / cmn_cu1) with the card's verse highlighted.
+    //     (WEB in English, bundled 1919 in Chinese) with the card's verse
+    //     highlighted.
     //
     // P18 removed the reflection question + action prompt from this screen —
     // they live on the home card, and repeating them here pushed the chapter
@@ -248,7 +249,7 @@ struct BiblePassageView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("chapterVerses")
 
-                Text("\(chapter.bookName) \(chapter.chapterNumber) · " + (isZH ? "新标点和合本" : "World English Bible"))
+                Text("\(chapter.bookName) \(chapter.chapterNumber) · " + (isZH ? "和合本（1919）" : "World English Bible"))
                     .font(.system(size: 11, weight: .light))
                     .foregroundColor(cardHint)
                     .padding(.top, 8)

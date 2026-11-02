@@ -22,7 +22,7 @@ Verified 2026-10-19 against the live service:
 | Call | Result |
 | --- | --- |
 | `GET https://bible.helloao.org/api/eng_web/JHN/3.json` | 200 `application/json` |
-| `GET https://bible.helloao.org/api/cmn_cu1/JHN/3.json` | 200 `application/json` |
+| `GET https://bible.helloao.org/api/cmn_cu1/JHN/3.json` | 200 `application/json` — **not used** (1989 edition; Chinese is bundled) |
 | `GET https://bible.helloao.org/api/eng_web/books.json` | 200 — 66 books + apocrypha, USFM ids |
 
 ## 2. Endpoint shape
@@ -31,8 +31,9 @@ Verified 2026-10-19 against the live service:
 GET https://bible.helloao.org/api/{translationId}/{USFM_BOOK}/{chapter}.json
 ```
 
-- **translationId** — `eng_web` (World English Bible) for English, `cmn_cu1`
-  (新标点和合本) for Chinese.
+- **translationId** — `eng_web` (World English Bible) for English. Chinese does
+  not use this API: the 1919 和合本 ships with the app and is read offline by
+  `ChineseBibleStore`.
 - **USFM_BOOK** — three-letter USFM code, *not* the book name: `GEN`, `1SA`, `PSA`,
   `JHN`, `REV`. The full table lives in `BibleAPIService.bookCodes`; the cards store
   display names ("1 Corinthians", "Psalm"), and `BibleAPIService.usfmCode(for:)`
@@ -108,7 +109,8 @@ not fall back to a spinner or an empty card.
 ## 6. Licences
 
 - **WEB** — public domain (https://worldenglish.bible).
-- **新标点和合本 (cmn_cu1)** — served by helloao; check the `license` object in
-  `available_translations.json` before shipping. The app's About sheet currently credits
-  Open Translation Bible (CC BY-SA 4.0) for Chinese text; confirm that matches what
-  `cmn_cu1` actually is before release.
+- **Chinese** — 官話和合本, 1919, public domain; bundled as
+  `Reveal/Resources/ChineseBible1919.json` and read by `ChineseBibleStore`.
+  The API's `cmn_cu1` is the **1989 new-punctuation** edition, whose rights the
+  United Bible Societies and the Hong Kong Bible Society administer — it is not
+  used, and a "public domain" label on a mirror does not make it free to ship.

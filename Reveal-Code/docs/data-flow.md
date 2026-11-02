@@ -20,7 +20,7 @@ any kind. No IDFA. No logging statements ship in the binary.
 
 | # | Destination | When | Payload | Contains user data? |
 |---|---|---|---|---|
-| 1 | `https://bible.helloao.org/api/{eng_web\|cmn_cu1}/{USFM}/{chapter}.json` | Only when the user taps a verse reference to open a chapter | A book code and a chapter number | No |
+| 1 | `https://bible.helloao.org/api/eng_web/{USFM}/{chapter}.json` | Only when the user taps a verse reference to open an English chapter (Chinese is bundled) | A book code and a chapter number | No |
 
 That is the complete list. The only other network activity is the system's own
 notification delivery, which is local scheduling — no request leaves the device.

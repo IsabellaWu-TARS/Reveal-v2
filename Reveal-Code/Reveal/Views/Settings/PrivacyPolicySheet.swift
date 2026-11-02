@@ -13,7 +13,8 @@
 //
 //  Everything below is written to match what this build actually does:
 //
-//    Network ................ one GET to bible.helloao.org per chapter opened
+//    Network ................ one GET to bible.helloao.org per English
+//                             chapter opened; Chinese is bundled
 //                             (no identifiers) + Apple push for the reminder
 //    Servers ................ none of ours
 //    Accounts ............... none
@@ -116,7 +117,7 @@ struct PrivacyPolicySheet: View {
             bullet("No health, fitness, financial or purchase information")
 
             sectionTitle("5. The only network requests the app makes")
-            bodyText("Reading a full chapter: when you tap a verse reference, the app requests that chapter over HTTPS from a public Bible text API (bible.helloao.org). The request contains only a book code and chapter number — no personal data, no device identifier, no advertising identifier. We do not operate that service and cannot associate a request with you.")
+            bodyText("Reading a full chapter in English: when you tap a verse reference, the app requests that chapter over HTTPS from a public Bible text API (bible.helloao.org). The request contains only a book code and chapter number — no personal data, no device identifier, no advertising identifier. We do not operate that service and cannot associate a request with you. Chinese chapters are bundled inside the app and are read without any network connection at all.")
             bodyText("Daily reminder: delivered through Apple's push notification service, only if you turn the reminder on, and used for nothing else.")
             bodyText("There are no other outbound requests. The app contains no third-party SDKs.")
 
@@ -191,7 +192,7 @@ struct PrivacyPolicySheet: View {
             bullet("健康、运动、财务或购买信息")
 
             sectionTitle("5. App 仅有的联网行为")
-            bodyText("阅读全章：当你点击经文出处时，App 会通过 HTTPS 从一个公开的圣经文本 API（bible.helloao.org）获取该章内容。请求中只有书卷代码与章节号，不含任何个人数据、设备标识符或广告标识符。该服务并非由我们运营，我们也无法把某次请求与你对应起来。")
+            bodyText("阅读英文全章：当你点击经文出处时，App 会通过 HTTPS 从一个公开的圣经文本 API（bible.helloao.org）获取该章内容。请求中只有书卷代码与章节号，不含任何个人数据、设备标识符或广告标识符。该服务并非由我们运营，我们也无法把某次请求与你对应起来。中文经文已完整内置在 App 内，读取时完全不联网。")
             bodyText("每日提醒：仅在你开启后，通过 Apple 的推送通知服务发送，不用于其他任何用途。")
             bodyText("除此以外没有其他对外请求。App 不包含任何第三方 SDK。")
 
