@@ -51,6 +51,10 @@ final class LayoutAuditTests: XCTestCase {
 
     func testCaptureAllPages() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -94,6 +98,10 @@ final class LayoutAuditTests: XCTestCase {
     /// pending notification requests.
     func testEnableDailyReminder() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -139,6 +147,10 @@ final class LayoutAuditTests: XCTestCase {
     /// open from the calendar and show its card.
     func testSeenDayOpensFromCalendar() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
         app.buttons["Calendar"].firstMatch.tap()
@@ -155,11 +167,19 @@ final class LayoutAuditTests: XCTestCase {
     /// Launch → quit → launch again: the daily card must be the same one.
     func testDailyCardStableAcrossRelaunch() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(5)
         shot("70-card-first-launch")
         app.terminate()
         sleep(2)
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(5)
         shot("71-card-second-launch")
@@ -169,6 +189,10 @@ final class LayoutAuditTests: XCTestCase {
     /// the retention and third-party sections.
     func testCapturePrivacyPolicy() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -216,6 +240,10 @@ final class LayoutAuditTests: XCTestCase {
     /// card PNG, not the app icon.
     func testShareSheetPreviewsCard() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -239,6 +267,10 @@ final class LayoutAuditTests: XCTestCase {
     /// dead band sat under the last card.
     func testCaptureSettingsContacts() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -265,6 +297,10 @@ final class LayoutAuditTests: XCTestCase {
     /// Calendar day sheet: full card, tap to flip to the reflection side.
     func testCalendarCardFlip() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -292,6 +328,10 @@ final class LayoutAuditTests: XCTestCase {
     /// The language is whatever the app is currently set to.
     func testCaptureChineseReflection() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(5)
 
@@ -306,6 +346,10 @@ final class LayoutAuditTests: XCTestCase {
     /// Puts the app back to English after a Chinese capture run.
     func testRestoreEnglish() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
         let gear = app.buttons.matching(identifier: "gearshape.fill").firstMatch
@@ -335,6 +379,10 @@ final class LayoutAuditTests: XCTestCase {
     /// Settings → Card Text Colour row.
     func testCaptureCardInkRow() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -354,6 +402,10 @@ final class LayoutAuditTests: XCTestCase {
     /// The first-launch guide: language choice, then four coach marks.
     func testCaptureOnboardingGuide() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(5)
 
@@ -378,10 +430,36 @@ final class LayoutAuditTests: XCTestCase {
         if start.waitForExistence(timeout: 4), start.isHittable { start.tap(); sleep(2) }
     }
 
+    /// The guide in Chinese, where the card carries the 1919 text.
+    func testCaptureOnboardingGuideChinese() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppLanguage", "zh-Hans"]
+        app.launch()
+        sleep(5)
+
+        let chinese = app.buttons["language-zh-Hans"].firstMatch
+        if chinese.waitForExistence(timeout: 4), chinese.isHittable {
+            chinese.tap(); sleep(2)
+        }
+        shot("Z1-guide-zh")
+
+        for i in 2...3 {
+            let next = app.buttons["下一步"].firstMatch
+            if next.waitForExistence(timeout: 4), next.isHittable {
+                next.tap(); sleep(1)
+                shot("Z\(i)-guide-zh")
+            }
+        }
+    }
+
     /// Captures the launch screen mid-animation. Run once with the simulator in
     /// light appearance and once in dark (`xcrun simctl ui <udid> appearance …`).
     func testCaptureSplash() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         // The splash pops at ~0.1s and lives ~2.3s; grab it while breathing.
         usleep(700_000)
@@ -391,6 +469,10 @@ final class LayoutAuditTests: XCTestCase {
     /// Opens the share sheet from the home screen and captures it.
     func testCaptureShareOverlay() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -424,6 +506,10 @@ final class LayoutAuditTests: XCTestCase {
     /// appended can be checked against the screen.
     func testCaptureAboutBibleSources() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 
@@ -474,6 +560,10 @@ final class LayoutAuditTests: XCTestCase {
     /// width and keyboard insets can be checked against the screen edges.
     func testCaptureNoteEditor() throws {
         let app = XCUIApplication()
+        // Tests state their language: the app persists the last one, so a
+        // Chinese capture earlier in the suite would leave this test looking
+        // for English labels on Chinese screens.
+        app.launchArguments += ["-AppLanguage", "en"]
         app.launch()
         sleep(4)
 

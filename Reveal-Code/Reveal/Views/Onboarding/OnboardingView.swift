@@ -5,12 +5,12 @@
 //  First-run flow, kept deliberately small:
 //
 //    1. Pick a language — two cards, one tap, applies immediately.
-//    2. Four coach marks. Each highlights a real control of the home screen
-//       (book, calendar, note, settings) with an arrow aimed at it and a
-//       one-line label, so the guide points at the app rather than describing it.
+//    2. Four coach marks drawn on the real page: today's card in the middle,
+//       the four controls around it exactly as the home screen places them, one
+//       of them lit, and a short note with an arrow pointing at it.
 //
-//  No demo card sits in the middle of this flow: the guide is the only thing on
-//  screen, so nothing competes with it or pushes it off a small phone.
+//  The background is painted edge to edge and only the content is inset, so no
+//  dark band shows behind the status bar.
 //
 
 import SwiftUI
@@ -34,6 +34,8 @@ struct OnboardingView: View {
         let detail: String
         let corner: Corner
         enum Corner { case topLeft, topRight, bottomLeft, bottomRight }
+        var isTop: Bool { corner == .topLeft || corner == .topRight }
+        var isLeft: Bool { corner == .topLeft || corner == .bottomLeft }
     }
 
     private var coaches: [Coach] {
@@ -88,14 +90,17 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
+            // Edge to edge — the gradient has to reach under the status bar.
             AppBackground()
 
-            switch stage {
-            case .language: languageStep
-            case .guide:    guideStep
+            Group {
+                switch stage {
+                case .language: languageStep
+                case .guide:    guideStep
+                }
             }
+            .padding(.top, topInset)
         }
-        .padding(.top, topInset)
         .animation(.easeInOut(duration: 0.25), value: stage)
     }
 
@@ -166,140 +171,172 @@ struct OnboardingView: View {
         .accessibilityIdentifier("language-\(code)")
     }
 
-    // MARK: - Step 2 · coach marks
+    // MARK: - Step 2 · the real page, with one control lit
 
     private var guideStep: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 12)
-
-            coachMap
-                .padding(.horizontal, 32)
-
-            Spacer(minLength: 12)
-
-            VStack(spacing: 16) {
-                HStack(spacing: 8) {
-                    ForEach(0..<coaches.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == step ? Design.accent : Design.accent.opacity(0.22))
-                            .frame(width: 7, height: 7)
-                    }
-                }
-
-                HStack(spacing: 16) {
-                    Button(isZH ? "跳过" : "Skip") {
-                        withAnimation { showOnboarding = false }
-                    }
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Design.accent.opacity(0.7))
-
-                    Spacer(minLength: 0)
-
-                    Button(buttonTitle) {
-                        if step >= coaches.count - 1 {
-                            withAnimation { showOnboarding = false }
-                        } else {
-                            withAnimation(.easeInOut(duration: 0.25)) { step += 1 }
-                        }
-                    }
-                    .buttonStyle(OnboardingPrimaryButtonStyle())
-                }
-                .padding(.horizontal, 32)
-            }
-            .padding(.bottom, 26)
-        }
-    }
-
-    /// Four chips arranged like the home screen's controls, with the current one
-    /// filled and an arrow from the explanation card pointing at it.
-    private var coachMap: some View {
-        let current = coaches[min(step, coaches.count - 1)]
+        let coach = coaches[min(step, coaches.count - 1)]
         return VStack(spacing: 0) {
             HStack {
-                coachChip(coaches[0], isActive: current.corner == .topLeft)
-                    .accessibilityIdentifier("coach-book")
-                Spacer()
-                coachChip(coaches[1], isActive: current.corner == .topRight)
-                    .accessibilityIdentifier("coach-calendar")
+                control(.topLeft, lit: coach.corner)
+                Spacer(minLength: 0)
+                control(.topRight, lit: coach.corner)
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 6)
+
+            if coach.isTop {
+                note(coach)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 22)
             }
 
-            HStack(alignment: .center, spacing: 6) {
-                if current.corner == .topRight || current.corner == .bottomRight {
-                    Spacer(minLength: 0)
-                }
+            cardPreview
+                .padding(.horizontal, 30)
+                .padding(.vertical, 8)
 
-                // The arrow always sits on the outer side of the card, between
-                // it and the chip it is pointing at.
-                switch current.corner {
-                case .topLeft, .bottomLeft:
-                    arrow(for: current.corner)
-                    explanationCard(current)
-                    Spacer(minLength: 0)
-                case .topRight, .bottomRight:
-                    Spacer(minLength: 0)
-                    explanationCard(current)
-                    arrow(for: current.corner)
-                }
+            if !coach.isTop {
+                note(coach)
+                    .padding(.bottom, 10)
+                    .padding(.horizontal, 22)
             }
-            .padding(.vertical, 14)
 
             HStack {
-                coachChip(coaches[2], isActive: current.corner == .bottomLeft)
-                    .accessibilityIdentifier("coach-note")
-                Spacer()
-                coachChip(coaches[3], isActive: current.corner == .bottomRight)
-                    .accessibilityIdentifier("coach-settings")
+                control(.bottomLeft, lit: coach.corner)
+                Spacer(minLength: 0)
+                control(.bottomRight, lit: coach.corner)
             }
+            .padding(.horizontal, 30)
+
+            Spacer(minLength: 8)
+
+            footer
         }
     }
 
-    private func explanationCard(_ coach: Coach) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(coach.title)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(hex: "2A2A2A"))
-            Text(coach.detail)
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "5C5C5C"))
-                .fixedSize(horizontal: false, vertical: true)
+    /// Today's card, drawn by the same view the home screen uses.
+    @ViewBuilder
+    private var cardPreview: some View {
+        if let card = dailyCardStore.currentCard {
+            CardFrontView(
+                card: card,
+                language: lang,
+                style: CardStyle.forCardId(card.id),
+                onFavorite: {},
+                isFavorite: false,
+                showsFavoriteButton: false
+            )
+            // Fixed height so the card does not resize as the tip moves.
+            .frame(maxWidth: .infinity)
+            .frame(height: 300)
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("guide-card")
+        } else {
+            Color.clear.frame(height: 220)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .frame(maxWidth: 250, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(hex: "FAF7F2"))
-                .shadow(color: Color.black.opacity(0.10), radius: 12, x: 0, y: 5)
-        )
     }
 
-    private func arrow(for corner: Coach.Corner) -> some View {
-        Image(systemName: arrowName(for: corner))
-            .font(.system(size: 17, weight: .bold))
+    private func control(_ corner: Coach.Corner, lit: Coach.Corner) -> some View {
+        let active = corner == lit
+        return Image(systemName: icon(for: corner))
+            .font(.system(size: active ? 21 : 18, weight: .medium))
+            .foregroundColor(active ? .white : Design.accent.opacity(0.5))
+            .frame(width: active ? 54 : 44, height: active ? 54 : 44)
+            .background(
+                Circle()
+                    .fill(active ? Design.accent : Color(hex: "FAF7F2").opacity(0.5))
+                    .shadow(color: Color.black.opacity(active ? 0.20 : 0.05),
+                            radius: active ? 12 : 5, x: 0, y: 3)
+            )
+            .overlay(
+                Circle().stroke(Design.accent.opacity(active ? 0 : 0.16), lineWidth: 1)
+            )
+            .animation(.easeInOut(duration: 0.2), value: active)
+            .accessibilityIdentifier("guide-\(icon(for: corner))")
+    }
+
+    private func icon(for corner: Coach.Corner) -> String {
+        switch corner {
+        case .topLeft:     return "book.fill"
+        case .topRight:    return "calendar"
+        case .bottomLeft:  return "note.text"
+        case .bottomRight: return "gearshape.fill"
+        }
+    }
+
+    /// The explanation, with the arrow on the side that faces the lit control.
+    private func note(_ coach: Coach) -> some View {
+        HStack(spacing: 10) {
+            if coach.isLeft { arrow(coach.corner) }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(coach.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(Color(hex: "2A2A2A"))
+                Text(coach.detail)
+                    .font(.system(size: 12.5))
+                    .foregroundColor(Color(hex: "5C5C5C"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            // Fixed height: a longer tip must not shrink the card above it.
+            .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(hex: "FAF7F2"))
+                    .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 4)
+            )
+
+            if !coach.isLeft { arrow(coach.corner) }
+        }
+    }
+
+    private func arrow(_ corner: Coach.Corner) -> some View {
+        Image(systemName: arrowName(corner))
+            .font(.system(size: 16, weight: .bold))
             .foregroundColor(Design.accent)
     }
 
-    private func coachChip(_ coach: Coach, isActive: Bool) -> some View {
-        Image(systemName: coach.icon)
-            .font(.system(size: 20, weight: .medium))
-            .foregroundColor(isActive ? .white : Design.accent)
-            .frame(width: isActive ? 56 : 44, height: isActive ? 56 : 44)
-            .background(
-                Circle()
-                    .fill(isActive ? Design.accent : Color(hex: "FAF7F2"))
-                    .shadow(color: Color.black.opacity(isActive ? 0.18 : 0.06),
-                            radius: isActive ? 10 : 5, x: 0, y: 3)
-            )
-            .animation(.easeInOut(duration: 0.2), value: isActive)
-    }
-
-    private func arrowName(for corner: Coach.Corner) -> String {
+    private func arrowName(_ corner: Coach.Corner) -> String {
         switch corner {
         case .topLeft:     return "arrow.up.left"
         case .topRight:    return "arrow.up.right"
         case .bottomLeft:  return "arrow.down.left"
         case .bottomRight: return "arrow.down.right"
         }
+    }
+
+    private var footer: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 8) {
+                ForEach(0..<coaches.count, id: \.self) { index in
+                    Circle()
+                        .fill(index == step ? Design.accent : Design.accent.opacity(0.22))
+                        .frame(width: 7, height: 7)
+                }
+            }
+
+            HStack(spacing: 16) {
+                Button(isZH ? "跳过" : "Skip") {
+                    withAnimation { showOnboarding = false }
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Design.accent.opacity(0.7))
+
+                Spacer(minLength: 0)
+
+                Button(buttonTitle) {
+                    if step >= coaches.count - 1 {
+                        withAnimation { showOnboarding = false }
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.25)) { step += 1 }
+                    }
+                }
+                .buttonStyle(OnboardingPrimaryButtonStyle())
+            }
+            .padding(.horizontal, 30)
+        }
+        .padding(.bottom, 24)
     }
 
     private var buttonTitle: String {
