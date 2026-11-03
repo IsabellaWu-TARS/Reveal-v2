@@ -37,6 +37,10 @@ struct SettingsView: View {
     @State private var customTintTop: Color = Color(hex: "D6B8A8")
     @State private var customTintBottom: Color = Color(hex: "C08A72")
 
+    // Scripture script: simplified by default, switchable to the 1919 text as
+    // printed. Both renderings carry identical wording — see ScriptPreference.
+    @AppStorage(ScriptPreference.key) private var scriptRaw: String = ChineseScript.simplified.rawValue
+
     var body: some View {
         // P13: Pull the Settings cards toward the centre so the frame reads
         // tighter (per user feedback: "可以往中间紧凑一点"). We cap the scroll
@@ -113,6 +117,37 @@ struct SettingsView: View {
                                             }
                                             .padding(12)
                                             .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.1)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.15), lineWidth: 1)))
+                                        }
+                                    }
+                                }
+
+                                // Scripture script — only meaningful for Chinese
+                                if dailyCardStore.appLanguage == "zh-Hans" {
+                                    SettingsCard {
+                                        VStack(alignment: .leading, spacing: 14) {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "character.book.closed").foregroundColor(Design.accent)
+                                                Text("经文显示")
+                                                    .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                            }
+                                            Picker("", selection: Binding(
+                                                get: { ChineseScript(rawValue: scriptRaw) ?? .simplified },
+                                                set: { newValue in
+                                                    scriptRaw = newValue.rawValue
+                                                    Task { await BibleAPIService.shared.clearCache() }
+                                                }
+                                            )) {
+                                                ForEach(ChineseScript.allCases) { script in
+                                                    Text(script.title(language: dailyCardStore.appLanguage)).tag(script)
+                                                }
+                                            }
+                                            .pickerStyle(.segmented)
+
+                                            Text(scriptRaw == ChineseScript.traditional.rawValue
+                                                 ? "和合本 1919 年原样，繁体字形。"
+                                                 : "与 1919 年原版逐字相同，仅字形转为简体。")
+                                                .font(.system(size: 12, weight: .light))
+                                                .foregroundColor(.secondary)
                                         }
                                     }
                                 }

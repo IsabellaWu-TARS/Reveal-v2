@@ -28,6 +28,7 @@ struct CardFrontView: View {
     var headline: String? = nil
 
     @AppStorage("cardTintMode") private var tintModeRaw: String = CardTint.automatic.rawValue
+    @AppStorage(ScriptPreference.key) private var scriptRaw: String = ChineseScript.simplified.rawValue
     @AppStorage("cardTintTopHex") private var tintTopHex: String = "D6B8A8"
     @AppStorage("cardTintBottomHex") private var tintBottomHex: String = "C08A72"
 

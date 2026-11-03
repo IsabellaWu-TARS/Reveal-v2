@@ -11,8 +11,18 @@ import UIKit
 
 struct BilingualCardContent: Codable {
     let verse: String
+    /// The 1919 text as printed, for readers who prefer the received form.
+    /// Optional so older card files still decode.
+    let verseTraditional: String?
     let question: String
     let action: String
+
+    init(verse: String, verseTraditional: String? = nil, question: String, action: String) {
+        self.verse = verse
+        self.verseTraditional = verseTraditional
+        self.question = question
+        self.action = action
+    }
 }
 
 struct RevealCard: Identifiable, Codable {
@@ -25,7 +35,11 @@ struct RevealCard: Identifiable, Codable {
     let zh: BilingualCardContent
 
     func verseText(language: String) -> String {
-        language == "zh-Hans" ? (zh.verse.isEmpty ? en.verse : zh.verse) : en.verse
+        guard language == "zh-Hans" else { return en.verse }
+        if ScriptPreference.isTraditional, let traditional = zh.verseTraditional, !traditional.isEmpty {
+            return traditional
+        }
+        return zh.verse.isEmpty ? en.verse : zh.verse
     }
     func questionText(language: String) -> String {
         language == "zh-Hans" ? (zh.question.isEmpty ? en.question : zh.question) : en.question

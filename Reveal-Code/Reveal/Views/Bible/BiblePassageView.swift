@@ -39,6 +39,9 @@ struct BiblePassageView: View {
     @State private var chapterError: String?
     @Environment(\.colorScheme) private var colorScheme
 
+    /// Redraws and refetches when the reader switches script.
+    @AppStorage(ScriptPreference.key) private var scriptRaw: String = ChineseScript.simplified.rawValue
+
     // The passage used to paint the cream "paper" surface in every colour
     // scheme, so dark mode showed a bright card on a dark page. These follow
     // the system appearance instead.
@@ -54,7 +57,7 @@ struct BiblePassageView: View {
     /// Reloads when the date rolls over or the language changes.
     private var chapterKey: String {
         guard let card = dailyCardStore.currentCard else { return "none" }
-        return "\(card.id)|\(dailyCardStore.appLanguage)"
+        return "\(card.id)|\(dailyCardStore.appLanguage)|\(scriptRaw)"
     }
 
     var body: some View {

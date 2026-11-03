@@ -12,6 +12,8 @@ import UIKit
 struct FavoriteCardRow: View {
     let card: RevealCard
     let language: String
+    @AppStorage(ScriptPreference.key) private var scriptRaw: String = ChineseScript.simplified.rawValue
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(card.referenceText(language: language))

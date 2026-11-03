@@ -85,7 +85,7 @@ struct AboutBibleSourcesSheet: View {
             linkText("来源：https://worldenglish.bible")
             Divider()
             sectionTitle("中文圣经")
-            bodyText("本应用引用的中文经文，取自 1919 年《和合本》（官話和合本「神」版）。全本经文随 App 一起打包，离线阅读，不联网。")
+            bodyText("本应用引用的中文经文，取自 1919 年《和合本》（官話和合本「神」版）。全本经文随 App 一起打包，离线阅读，不联网。默认以简体字形显示，可在「设置 → 经文显示」切回 1919 年原样的繁体字形。")
             bodyText("1919 年版已进入公有领域。本应用不使用 1989 年「新标点」版——该版本的权利由联合圣经公会与香港圣经公会主张。")
             linkText("来源：https://zh.wikisource.org/wiki/聖經_(和合本)")
             Divider()

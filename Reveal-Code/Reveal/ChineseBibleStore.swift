@@ -11,8 +11,10 @@
 //  inside the app and reading a Chinese chapter never touches the network.
 //
 //  Text: 官話和合本, 1919 (the "神" edition — hence the full-width space before
-//  the divine name). Characters converted to simplified; punctuation brought to
-//  modern usage. Wording is unchanged.
+//  the divine name). Two renderings are bundled: the received traditional text,
+//  verbatim, and a character-for-character simplification of it. Wording,
+//  punctuation, verse boundaries and archaic forms are identical in both; only
+//  the character forms differ, so switching cannot change what the text says.
 //
 
 import Foundation
@@ -34,44 +36,47 @@ actor ChineseBibleStore {
         }
     }
 
-    /// One `[chapter, verse, text]` row from the JSON bundle.
+    /// One `[chapter, verse, simplified, traditional]` row from the JSON bundle.
     private struct Row: Decodable {
         let chapter: Int
         let verse: Int
-        let text: String
+        let simplified: String
+        let traditional: String
 
         init(from decoder: Decoder) throws {
             var container = try decoder.unkeyedContainer()
             chapter = try container.decode(Int.self)
             verse = try container.decode(Int.self)
-            text = try container.decode(String.self)
+            simplified = try container.decode(String.self)
+            traditional = try container.decode(String.self)
+        }
+
+        func text(_ script: ChineseScript) -> String {
+            script == .traditional ? traditional : simplified
         }
     }
 
     private var all: [String: [Row]]?
-    private var cache: [String: [Int: [BibleVerse]]] = [:]
+    /// Keyed by "USFM|chapter" so the two renderings never overwrite each other.
+    private var cache: [String: [BibleVerse]] = [:]
 
-    func chapter(usfm: String, number: Int, fallbackBookName: String) throws -> BibleChapter {
+    func chapter(usfm: String, number: Int, fallbackBookName: String,
+                 script: ChineseScript = ScriptPreference.current) throws -> BibleChapter {
         let name = Self.bookNames[usfm] ?? fallbackBookName
+        let key = "\(usfm)|\(number)|\(script.rawValue)"
 
-        if let byChapter = cache[usfm], let verses = byChapter[number] {
-            return BibleChapter(bookName: name, bookCode: usfm, chapterNumber: number, verses: verses)
+        if let cached = cache[key] {
+            return BibleChapter(bookName: name, bookCode: usfm, chapterNumber: number, verses: cached)
         }
 
         let book = try load()[usfm] ?? []
         guard !book.isEmpty else { throw StoreError.bookMissing(usfm) }
 
-        var byChapter: [Int: [BibleVerse]] = [:]
-        for row in book {
-            byChapter[row.chapter, default: []].append(
-                BibleVerse(number: row.verse, heading: nil, text: row.text)
-            )
-        }
-        cache[usfm] = byChapter
+        let rows = book.filter { $0.chapter == number }
+        guard !rows.isEmpty else { throw StoreError.chapterMissing(usfm, number) }
 
-        guard let verses = byChapter[number], !verses.isEmpty else {
-            throw StoreError.chapterMissing(usfm, number)
-        }
+        let verses = rows.map { BibleVerse(number: $0.verse, heading: nil, text: $0.text(script)) }
+        cache[key] = verses
         return BibleChapter(bookName: name, bookCode: usfm, chapterNumber: number, verses: verses)
     }
 
