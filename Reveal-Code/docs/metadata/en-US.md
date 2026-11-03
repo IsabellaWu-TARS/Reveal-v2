@@ -9,8 +9,8 @@ rejected for length. Values marked **TODO** need a decision or a live URL.
 | Subtitle | 30 | `A verse, a reflection, a step` | 29 |
 | Promotional text | 170 | `One verse a day, one reflection, one small action. 314 devotionals in English and 简体中文, kept on your device, never on a server.` | 141 |
 | Keywords | 100 | `bible verse,daily devotional,scripture,christian,reflection,prayer,journal,quiet time,faith` | 96 |
-| Support URL | — | **TODO** — `https://isabellawu-tars.github.io/Reveal-v2/support/` once GitHub Pages is enabled | — |
-| Privacy Policy URL | — | **TODO** — `https://isabellawu-tars.github.io/Reveal-v2/privacy/` once GitHub Pages is enabled | — |
+| Support URL | — | `https://isabellawu-tars.github.io/Reveal-v2/support/` | — |
+| Privacy Policy URL | — | `https://isabellawu-tars.github.io/Reveal-v2/privacy/` | — |
 | Marketing URL | — | optional, same Pages root | — |
 | Category | — | Lifestyle (secondary: Books) | — |
 | Age rating | — | 4+ | — |
@@ -40,8 +40,8 @@ what you wrote, and what you were thinking that week.
 
 READ AROUND IT
 Tap any reference to read the whole chapter, with the day's verse highlighted in
-place. The surrounding text is fetched when you ask for it; the day's verse is
-always stored on your device, so it reads fine on a plane.
+place. The Chinese text is stored on your device in full, so it reads fine on a
+plane; the English chapter is fetched when you ask for it.
 
 SHARE THE CARD, NOT A SCREENSHOT
 Share the card as it looks — verse side, reflection side, or both — as a clean
@@ -55,9 +55,10 @@ QUIET BY DESIGN
 · Light, dark, and a card text colour you can set yourself.
 
 TWO LANGUAGES
-English (World English Bible, public domain) and 简体中文 (Chinese Union Version,
-1919). Switch at any time in Settings — the card, the reflection and the reminder
-all follow.
+English (World English Bible, public domain) and 简体中文 (Chinese Union Version of
+1919, public domain). Switch at any time in Settings — the card, the reflection and
+the reminder all follow. Chinese readers can also read the 1919 text in traditional
+characters, exactly as printed, with one switch in Settings.
 
 WHAT IT IS NOT
 No streaks to maintain. No badges. No feed. Nothing to catch up on if you miss a
