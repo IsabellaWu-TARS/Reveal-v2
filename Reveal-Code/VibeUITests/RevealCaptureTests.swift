@@ -26,13 +26,18 @@ final class RevealCaptureTests: XCTestCase {
         return app
     }
 
-    /// Taps through whatever onboarding is showing, if any.
+    /// Walks the first-run flow if it is showing: pick English, then tap the
+    /// page — the guide has no Next button.
     private func dismissOnboarding(_ app: XCUIApplication) {
-        for label in ["Get Started", "Begin", "Continue", "Start", "开始", "开始使用", "继续"] {
-            let button = app.buttons[label]
-            if button.waitForExistence(timeout: 1.5), button.isHittable {
-                button.tap()
-            }
+        let english = app.buttons["language-en"].firstMatch
+        if english.waitForExistence(timeout: 4), english.isHittable {
+            english.tap()
+            usleep(800_000)
+        }
+        for _ in 0..<7 {
+            guard app.buttons["Skip"].exists || app.buttons["跳过"].exists else { return }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            usleep(500_000)
         }
     }
 

@@ -10,20 +10,21 @@ import XCTest
 
 final class LayoutAuditTests: XCTestCase {
 
-    /// Walks the first-run flow: language → four coach marks → Get Started.
-    /// Safe to call when onboarding is not showing.
+    /// Walks the first-run flow: pick a language, then tap the page five times.
+    /// The guide has no Next button — a tap anywhere advances — so the helper
+    /// taps only while the guide is on screen (Skip is its marker).
     static func dismissOnboarding(_ app: XCUIApplication) {
-        for _ in 0..<8 {
-            if app.buttons["language-en"].exists {
-                app.buttons["language-en"].tap(); usleep(700_000); continue
-            }
-            if app.buttons["Next"].exists {
-                app.buttons["Next"].tap(); usleep(600_000); continue
-            }
-            if app.buttons["Get Started"].exists {
-                app.buttons["Get Started"].tap(); usleep(800_000); return
-            }
-            return
+        let english = app.buttons["language-en"].firstMatch
+        if english.waitForExistence(timeout: 4), english.isHittable {
+            english.tap()
+            usleep(800_000)
+        }
+
+        for _ in 0..<7 {
+            let inGuide = app.buttons["Skip"].exists || app.buttons["跳过"].exists
+            guard inGuide else { return }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            usleep(500_000)
         }
     }
 
@@ -417,17 +418,13 @@ final class LayoutAuditTests: XCTestCase {
         }
         shot("G1-guide-step1")
 
-        for i in 2...4 {
-            let next = app.buttons["Next"].firstMatch
-            if next.waitForExistence(timeout: 4), next.isHittable {
-                next.tap(); sleep(1)
-                shot("G\(i)-guide-step\(i)")
-            }
+        // Five coach marks now, advanced by tapping the page.
+        for i in 2...5 {
+            guard app.buttons["Skip"].exists else { break }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            sleep(1)
+            shot("G\(i)-guide-step\(i)")
         }
-        let start = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS[c] 'Get Started' OR label CONTAINS '开始体验'")
-        ).firstMatch
-        if start.waitForExistence(timeout: 4), start.isHittable { start.tap(); sleep(2) }
     }
 
     /// The guide in Chinese, where the card carries the 1919 text.
@@ -443,12 +440,11 @@ final class LayoutAuditTests: XCTestCase {
         }
         shot("Z1-guide-zh")
 
-        for i in 2...3 {
-            let next = app.buttons["下一步"].firstMatch
-            if next.waitForExistence(timeout: 4), next.isHittable {
-                next.tap(); sleep(1)
-                shot("Z\(i)-guide-zh")
-            }
+        for i in 2...4 {
+            guard app.buttons["跳过"].exists else { break }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            sleep(1)
+            shot("Z\(i)-guide-zh")
         }
     }
 

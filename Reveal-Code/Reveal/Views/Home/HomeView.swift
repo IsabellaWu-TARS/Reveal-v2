@@ -113,6 +113,7 @@ struct HomeView: View {
                         HapticManager.light()
                         shareManager.showShareOptions = true
                     }
+                    .coachAnchor(.share)
 
                     Spacer()
 

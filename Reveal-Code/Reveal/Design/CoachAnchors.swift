@@ -13,6 +13,7 @@ import SwiftUI
 enum CoachTarget: Hashable, CaseIterable {
     case read
     case calendar
+    case share
     case notes
     case settings
 
@@ -20,6 +21,7 @@ enum CoachTarget: Hashable, CaseIterable {
         switch self {
         case .read:     return "book.fill"
         case .calendar: return "calendar"
+        case .share:    return "square.and.arrow.up"
         case .notes:    return "note.text"
         case .settings: return "gearshape.fill"
         }
