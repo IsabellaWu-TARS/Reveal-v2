@@ -92,11 +92,13 @@ struct HomeView: View {
                         HapticManager.light()
                         withAnimation { currentPage = .bible }
                     }
+                    .coachAnchor(.read)
                     Spacer()
                     outerActionButton(icon: "calendar") {
                         HapticManager.light()
                         withAnimation { currentPage = .calendar }
                     }
+                    .coachAnchor(.calendar)
                 }
                 .frame(width: cornerBarWidth, height: homeCornerButtonSize)
                 .position(x: screenW / 2, y: topBarY)
@@ -143,6 +145,7 @@ struct HomeView: View {
                                 .shadow(color: Design.cardShadowColor, radius: 6, x: 0, y: 3)
                         )
                     }
+                    .coachAnchor(.notes)
 
                     Spacer()
 
@@ -151,6 +154,7 @@ struct HomeView: View {
                         HapticManager.light()
                         withAnimation { currentPage = .settings }
                     }
+                    .coachAnchor(.settings)
                 }
                 .frame(width: cornerBarWidth, height: max(noteH, homeCornerButtonSize))
                 .position(x: screenW / 2, y: bottomBarY)

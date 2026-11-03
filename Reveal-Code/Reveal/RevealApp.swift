@@ -41,7 +41,9 @@ struct ContentView: View {
                 }
             } else if showOnboarding {
                 OnboardingView(showOnboarding: $showOnboarding)
+                    .environmentObject(themeManager)
                     .environmentObject(dailyCardStore)
+                    .environmentObject(shareManager)
             } else {
                 switch currentPage {
                 case .home:
