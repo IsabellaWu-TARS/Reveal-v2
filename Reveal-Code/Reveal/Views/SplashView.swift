@@ -26,7 +26,10 @@ struct SplashView: View {
     private var isDark: Bool { colorScheme == .dark }
 
     /// Final vertical position of the leaf: 46pt above dead centre.
-    private static let restingOffset: CGFloat = -46
+    /// Dead centre. It used to sit 46pt high — the leaf asset is already
+    /// balanced around its own middle, so the shift read as "off centre"
+    /// rather than as the resting posture it was meant to suggest.
+    private static let restingOffset: CGFloat = 0
 
     /// Warm paper in light mode, near-black in dark mode.
     private var backdrop: LinearGradient {
