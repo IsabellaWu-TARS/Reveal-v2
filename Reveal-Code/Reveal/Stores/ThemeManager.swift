@@ -26,7 +26,7 @@ class ThemeManager: ObservableObject {
         }
         var titleEN: String {
             switch self {
-            case .system: return "Follow System"
+            case .system: return "System"   // "Follow System" truncated in the segmented control
             case .light: return "Light Mode"
             case .dark: return "Dark Mode"
             }

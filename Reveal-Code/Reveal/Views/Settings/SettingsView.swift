@@ -156,7 +156,13 @@ struct SettingsView: View {
                                 SettingsCard {
                                     VStack(alignment: .leading, spacing: 14) {
                                         HStack(spacing: 8) {
-                                            Image(systemName: "textformat").foregroundColor(Design.accent)
+                                            // A monogram rather than the "textformat"
+                                            // symbol: that symbol has a localised glyph, and
+                                            // the Chinese one renders as 格式 inside the
+                                            // English settings screen.
+                                            Text("Aa")
+                                                .font(.system(size: 14, weight: .semibold, design: .serif))
+                                                .foregroundColor(Design.accent)
                                             Text(dailyCardStore.appLanguage == "zh-Hans" ? "卡片文字颜色" : "Card Text Colour")
                                                 .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
                                         }
