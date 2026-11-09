@@ -26,6 +26,7 @@ struct NoteEditorCard: View {
 
     private var formattedDate: String {
         let f = DateFormatter()
+        f.locale = AppLocale.forLanguage(language)
         f.dateFormat = language == "zh-Hans" ? "yyyy年M月d日" : "MMMM d, yyyy"
         return f.string(from: Date())
     }

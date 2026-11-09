@@ -100,7 +100,8 @@ struct CardBackView: View {
                             .font(.custom("Georgia", size: 15))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(8)
                     }
                 }
                 .padding(.horizontal, 26)
@@ -127,7 +128,8 @@ struct CardBackView: View {
                             .font(.custom("Georgia", size: 15))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(6)
                     }
                 }
                 .padding(.horizontal, 26)
@@ -153,6 +155,9 @@ struct CardBackView: View {
                         .padding(14)
                 }
             }
+            .clipped()
         }
+        // Same ceiling as the front face: a card that must not change size.
+        .dynamicTypeSize(.xSmall ... .xxLarge)
     }
 }

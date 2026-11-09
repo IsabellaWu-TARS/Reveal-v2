@@ -67,6 +67,9 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(themeManager.resolvedColorScheme)
+        // Keep any system-formatted text (dates, numbers) in the app's language
+        // rather than the phone's.
+        .environment(\.locale, AppLocale.forLanguage(dailyCardStore.appLanguage))
         .animation(Design.springAnim, value: currentPage)
         .animation(Design.springAnim, value: showOnboarding)
         .animation(.easeInOut(duration: 0.5), value: showSplash)

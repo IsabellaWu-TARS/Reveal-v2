@@ -71,6 +71,9 @@ struct CalendarView: View {
 
     private func monthTitle(_ month: Date) -> String {
         let f = DateFormatter()
+        // Without a locale, "MMMM" resolves against the *device* language: an
+        // English app on a Chinese phone showed 十一月 2026.
+        f.locale = AppLocale.forLanguage(dailyCardStore.appLanguage)
         f.dateFormat = dailyCardStore.appLanguage == "zh-Hans" ? "yyyy 年 M 月" : "MMMM yyyy"
         return f.string(from: month)
     }
@@ -578,6 +581,7 @@ private struct DateDetailSheet: View {
 
     private var dateLabel: String {
         let f = DateFormatter()
+        f.locale = AppLocale.forLanguage(language)
         f.dateFormat = language == "zh-Hans" ? "M月d日" : "MMMM d"
         return f.string(from: date)
     }

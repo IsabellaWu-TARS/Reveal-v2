@@ -127,12 +127,15 @@ struct CardFrontView: View {
                 // spacing, wrapped in curly quotes to keep the
                 // scripture-card feel the rest of the app uses.
                 Text(quotedVerse(card.verseText(language: language)))
-                    .font(.custom("Georgia", size: scale.verse))
+                    .font(.custom("Georgia", size: scale.verse, relativeTo: .body))
                     .fontWeight(.light)
                     .foregroundColor(inkPalette.body)
                     .multilineTextAlignment(.center)
                     .lineSpacing(scale.verse * 0.41)
-                    .minimumScaleFactor(0.75)
+                    // The card is a fixed surface: let the type grow with the
+                    // system setting, then squeeze rather than burst the card.
+                    .minimumScaleFactor(0.55)
+                    .lineLimit(14)
                     .padding(.horizontal, scale.horizontal)
 
                 // (c) Scripture reference (Book Chapter:Verse) —
@@ -140,7 +143,7 @@ struct CardFrontView: View {
                 // a secondary line, pushed near the bottom of the
                 // card.
                 Text(referenceLine)
-                    .font(.custom("Georgia-Bold", size: scale.reference))
+                    .font(.custom("Georgia-Bold", size: scale.reference, relativeTo: .footnote))
                     .bold()
                     .foregroundColor(inkPalette.secondary)
 
@@ -148,6 +151,7 @@ struct CardFrontView: View {
             }
             .padding(.horizontal, scale.horizontal)
             .padding(.vertical, scale.vertical)
+            .clipped()
 
             // Favorite ⭐ — same top-right position as before so it
             // doesn't "jump" if the card flips. The button widget
@@ -160,8 +164,9 @@ struct CardFrontView: View {
             }
         }
         }
-        // The card is a fixed-size artefact; let its type track the card, not
-        // the system text size, or the verse overflows on larger settings.
-        .dynamicTypeSize(.xSmall ... .large)
+        // Type now follows the system size (the verse and reference are
+        // relative fonts), but only as far as .xxLarge — past that it would
+        // burst a card that must stay the same size for everyone.
+        .dynamicTypeSize(.xSmall ... .xxLarge)
     }
 }
