@@ -77,9 +77,9 @@ struct CardFrontView: View {
             min(max(value, low), high)
         }
 
-        var verse: CGFloat      { clamp(width * 0.046, 12, 22) }
-        var caption: CGFloat    { clamp(width * 0.028, 9, 12) }
-        var reference: CGFloat  { clamp(width * 0.033, 10.5, 14) }
+        var verse: CGFloat      { clamp(width * 0.046 + 1, 13, 23) }
+        var caption: CGFloat    { clamp(width * 0.028 + 1, 10, 13) }
+        var reference: CGFloat  { clamp(width * 0.033 + 1, 11.5, 15) }
         var horizontal: CGFloat { clamp(width * 0.072, 16, 30) }
         var vertical: CGFloat   { clamp(width * 0.072, 16, 30) }
     }
@@ -134,8 +134,8 @@ struct CardFrontView: View {
                     .lineSpacing(scale.verse * 0.41)
                     // The card is a fixed surface: let the type grow with the
                     // system setting, then squeeze rather than burst the card.
-                    .minimumScaleFactor(0.55)
-                    .lineLimit(14)
+                    .minimumScaleFactor(0.45)
+                    .lineLimit(18)
                     .padding(.horizontal, scale.horizontal)
 
                 // (c) Scripture reference (Book Chapter:Verse) —

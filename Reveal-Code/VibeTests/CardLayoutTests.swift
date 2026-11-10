@@ -19,7 +19,7 @@ final class CardLayoutTests: XCTestCase {
         let standard = CardFrontView.TypeScale(width: 390)
         let zoomed = CardFrontView.TypeScale(width: 320)
 
-        XCTAssertEqual(standard.verse, 17.94, accuracy: 0.01, "390pt card should keep the shipped 17–18pt verse")
+        XCTAssertEqual(standard.verse, 18.94, accuracy: 0.01, "390pt card sits at ~19pt after the one-step bump")
         XCTAssertGreaterThan(wide.verse, standard.verse)
         XCTAssertLessThan(zoomed.verse, standard.verse, "a zoomed screen must not get the full-size verse")
         XCTAssertLessThan(zoomed.horizontal, standard.horizontal, "margins scale with the card too")
@@ -29,10 +29,10 @@ final class CardLayoutTests: XCTestCase {
         let tiny = CardFrontView.TypeScale(width: 180)
         let huge = CardFrontView.TypeScale(width: 900)
 
-        XCTAssertEqual(tiny.verse, 12, accuracy: 0.01)
-        XCTAssertEqual(huge.verse, 22, accuracy: 0.01)
-        XCTAssertGreaterThanOrEqual(tiny.caption, 9)
-        XCTAssertLessThanOrEqual(huge.reference, 14)
+        XCTAssertEqual(tiny.verse, 13, accuracy: 0.01)
+        XCTAssertEqual(huge.verse, 23, accuracy: 0.01)
+        XCTAssertGreaterThanOrEqual(tiny.caption, 10)
+        XCTAssertLessThanOrEqual(huge.reference, 15)
         XCTAssertGreaterThanOrEqual(tiny.horizontal, 16)
         XCTAssertLessThanOrEqual(huge.horizontal, 30)
     }

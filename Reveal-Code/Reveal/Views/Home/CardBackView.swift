@@ -72,7 +72,7 @@ struct CardBackView: View {
             VStack(alignment: .leading, spacing: 22) {
                 // ── Heading: single word "Reflection" / "默想".
                 Text(mainHeading)
-                    .font(.custom("Georgia", size: 24))
+                    .font(.custom("Georgia", size: 25))
                     .fontWeight(.bold)
                     .foregroundColor(inkPalette.body)
                     .padding(.horizontal, 26)
@@ -93,11 +93,11 @@ struct CardBackView: View {
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(reflectLabel)
-                            .font(.custom("Georgia", size: 14))
+                            .font(.custom("Georgia", size: 15))
                             .fontWeight(.bold)
                             .foregroundColor(inkPalette.body)
                         Text(card.questionText(language: language))
-                            .font(.custom("Georgia", size: 15))
+                            .font(.custom("Georgia", size: 16))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .minimumScaleFactor(0.7)
@@ -121,11 +121,11 @@ struct CardBackView: View {
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(actionLabel)
-                            .font(.custom("Georgia", size: 14))
+                            .font(.custom("Georgia", size: 15))
                             .fontWeight(.bold)
                             .foregroundColor(inkPalette.body)
                         Text(card.actionText(language: language))
-                            .font(.custom("Georgia", size: 15))
+                            .font(.custom("Georgia", size: 16))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .minimumScaleFactor(0.7)
@@ -139,7 +139,7 @@ struct CardBackView: View {
                 // ── Bottom: "Tap to return" hint, centred.
                 if showsReturnHint {
                     Text(tapToReturn)
-                        .font(.custom("Georgia", size: 12))
+                        .font(.custom("Georgia", size: 13))
                         .foregroundColor(inkPalette.tertiary)
                         .tracking(2)
                         .frame(maxWidth: .infinity, alignment: .center)
