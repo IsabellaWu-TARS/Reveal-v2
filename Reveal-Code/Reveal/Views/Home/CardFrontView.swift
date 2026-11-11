@@ -70,20 +70,6 @@ struct CardFrontView: View {
     /// on: the screen reports ~320pt instead of 390, the card shrinks with it,
     /// and 17pt verse text then fills — and overflows — a much smaller card.
     /// Long English verses suffer first; Chinese is dense enough to hide it.
-    struct TypeScale {
-        let width: CGFloat
-
-        private func clamp(_ value: CGFloat, _ low: CGFloat, _ high: CGFloat) -> CGFloat {
-            min(max(value, low), high)
-        }
-
-        var verse: CGFloat      { clamp(width * 0.046 + 1, 13, 23) }
-        var caption: CGFloat    { clamp(width * 0.028 + 1, 10, 13) }
-        var reference: CGFloat  { clamp(width * 0.033 + 1, 11.5, 15) }
-        var horizontal: CGFloat { clamp(width * 0.072, 16, 30) }
-        var vertical: CGFloat   { clamp(width * 0.072, 16, 30) }
-    }
-
     /// Verse text wrapped in typographic quotes for the card face.
     /// Some translations already open with a quote (direct speech, e.g.
     /// Leviticus 23:22 in WEB), which used to render as ““…””.
@@ -96,7 +82,7 @@ struct CardFrontView: View {
 
     var body: some View {
         GeometryReader { geo in
-        let scale = TypeScale(width: geo.size.width)
+        let scale = CardTypeScale(width: geo.size.width)
         ZStack {
             // ── Card base: rounded rectangle filled with the day's
             //    gradient (top → bottom, 3 stops). Text ink follows the
@@ -134,7 +120,7 @@ struct CardFrontView: View {
                     .lineSpacing(scale.verse * 0.41)
                     // The card is a fixed surface: let the type grow with the
                     // system setting, then squeeze rather than burst the card.
-                    .minimumScaleFactor(0.45)
+                    .minimumScaleFactor(0.55)
                     .lineLimit(18)
                     .padding(.horizontal, scale.horizontal)
 
@@ -167,6 +153,6 @@ struct CardFrontView: View {
         // Type now follows the system size (the verse and reference are
         // relative fonts), but only as far as .xxLarge — past that it would
         // burst a card that must stay the same size for everyone.
-        .dynamicTypeSize(.xSmall ... .xxLarge)
+        .dynamicTypeSize(CardTypeScale.dynamicTypeRange)
     }
 }

@@ -5,6 +5,7 @@
 //  Split out of the original single-file VibeApp.swift.
 //
 
+import Foundation
 import SwiftUI
 import Combine
 import UIKit
@@ -20,9 +21,44 @@ enum CardStyle: String, CaseIterable, Identifiable, Codable {
 
     // MARK: - Palette
     // Top / Mid / Bottom — every gradient is a 3-stop vertical fade.
-    private var top: Color    { Color(hex: topHex) }
-    private var mid: Color    { Color(hex: midHex) }
-    private var bottom: Color { Color(hex: bottomHex) }
+    //
+    // White type needs a floor under it. Twelve of the thirteen gradients used to
+    // sit between 1.18:1 and 1.43:1 against white, so on the palest cards the
+    // verse and the "TODAY'S VERSE" line dissolved into the paper. Each stop is
+    // nudged down only as far as 2.2:1 — enough for the caption to read at a
+    // glance, still light enough that the card looks like paper rather than
+    // ink — and stops that already clear it are left alone. The deep family is
+    // untouched at 8.85:1.
+    private static let whiteTextFloor = 2.2
+
+    private var top: Color    { Color(hex: Self.readable(topHex)) }
+    private var mid: Color    { Color(hex: Self.readable(midHex)) }
+    private var bottom: Color { Color(hex: Self.readable(bottomHex)) }
+
+    /// Darkens a stop in small steps until white type clears `whiteTextFloor`,
+    /// leaving stops that already clear it untouched.
+    static func readable(_ hex: String) -> String {
+        guard hex.count == 6, let value = UInt32(hex, radix: 16) else { return hex }
+        var r = Double((value >> 16) & 0xFF)
+        var g = Double((value >> 8) & 0xFF)
+        var b = Double(value & 0xFF)
+
+        func luminance() -> Double {
+            func lin(_ c: Double) -> Double {
+                let s = c / 255
+                return s <= 0.03928 ? s / 12.92 : pow((s + 0.055) / 1.055, 2.4)
+            }
+            return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+        }
+        func contrast() -> Double { 1.05 / (luminance() + 0.05) }
+
+        var steps = 0
+        while contrast() < whiteTextFloor && steps < 8 {
+            r *= 0.94; g *= 0.94; b *= 0.94; steps += 1
+        }
+        let packed = UInt32(round(r)) << 16 | UInt32(round(g)) << 8 | UInt32(round(b))
+        return String(format: "%06X", packed)
+    }
 
     private var topHex: String {
         // Restored palette: 13 soft gradients across 24 card names.

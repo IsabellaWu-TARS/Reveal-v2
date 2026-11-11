@@ -63,6 +63,8 @@ struct CardBackView: View {
     private var tapToReturn:   String { language == "zh-Hans" ? "点击返回" : "Tap to return" }
 
     var body: some View {
+        GeometryReader { geo in
+        let scale = CardTypeScale(width: geo.size.width)
         ZStack {
             // ── Card base: same daily gradient as the front.
             RoundedRectangle(cornerRadius: 32, style: .continuous)
@@ -72,7 +74,7 @@ struct CardBackView: View {
             VStack(alignment: .leading, spacing: 22) {
                 // ── Heading: single word "Reflection" / "默想".
                 Text(mainHeading)
-                    .font(.custom("Georgia", size: 25))
+                    .font(.custom("Georgia", size: scale.title, relativeTo: .body))
                     .fontWeight(.bold)
                     .foregroundColor(inkPalette.body)
                     .padding(.horizontal, 26)
@@ -93,11 +95,11 @@ struct CardBackView: View {
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(reflectLabel)
-                            .font(.custom("Georgia", size: 15))
+                            .font(.custom("Georgia", size: scale.label, relativeTo: .body))
                             .fontWeight(.bold)
                             .foregroundColor(inkPalette.body)
                         Text(card.questionText(language: language))
-                            .font(.custom("Georgia", size: 16))
+                            .font(.custom("Georgia", size: scale.body, relativeTo: .body))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .minimumScaleFactor(0.7)
@@ -121,11 +123,11 @@ struct CardBackView: View {
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text(actionLabel)
-                            .font(.custom("Georgia", size: 15))
+                            .font(.custom("Georgia", size: scale.label, relativeTo: .body))
                             .fontWeight(.bold)
                             .foregroundColor(inkPalette.body)
                         Text(card.actionText(language: language))
-                            .font(.custom("Georgia", size: 16))
+                            .font(.custom("Georgia", size: scale.body, relativeTo: .body))
                             .foregroundColor(inkPalette.body)
                             .lineSpacing(5)
                             .minimumScaleFactor(0.7)
@@ -139,7 +141,7 @@ struct CardBackView: View {
                 // ── Bottom: "Tap to return" hint, centred.
                 if showsReturnHint {
                     Text(tapToReturn)
-                        .font(.custom("Georgia", size: 13))
+                        .font(.custom("Georgia", size: scale.hint, relativeTo: .body))
                         .foregroundColor(inkPalette.tertiary)
                         .tracking(2)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -158,6 +160,7 @@ struct CardBackView: View {
             .clipped()
         }
         // Same ceiling as the front face: a card that must not change size.
-        .dynamicTypeSize(.xSmall ... .xxLarge)
+        .dynamicTypeSize(CardTypeScale.dynamicTypeRange)
+        }
     }
 }

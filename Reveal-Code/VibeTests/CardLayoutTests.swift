@@ -15,9 +15,9 @@ import SwiftUI
 final class CardLayoutTests: XCTestCase {
 
     func testVerseSizeFollowsCardWidth() {
-        let wide = CardFrontView.TypeScale(width: 402)
-        let standard = CardFrontView.TypeScale(width: 390)
-        let zoomed = CardFrontView.TypeScale(width: 320)
+        let wide = CardTypeScale(width: 402)
+        let standard = CardTypeScale(width: 390)
+        let zoomed = CardTypeScale(width: 320)
 
         XCTAssertEqual(standard.verse, 18.94, accuracy: 0.01, "390pt card sits at ~19pt after the one-step bump")
         XCTAssertGreaterThan(wide.verse, standard.verse)
@@ -26,8 +26,8 @@ final class CardLayoutTests: XCTestCase {
     }
 
     func testTypeSizesStayWithinReadableBounds() {
-        let tiny = CardFrontView.TypeScale(width: 180)
-        let huge = CardFrontView.TypeScale(width: 900)
+        let tiny = CardTypeScale(width: 180)
+        let huge = CardTypeScale(width: 900)
 
         XCTAssertEqual(tiny.verse, 13, accuracy: 0.01)
         XCTAssertEqual(huge.verse, 23, accuracy: 0.01)
