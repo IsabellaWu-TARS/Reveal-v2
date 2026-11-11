@@ -40,6 +40,10 @@ struct CardBackView: View {
     }
 
     @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
+    @AppStorage("cardTextScale") private var textScale: Double = CardTypeScale.defaultScale
+
+    /// The card's on-screen width, handed down by the parent that frames it.
+    var cardWidth: CGFloat = 390
     @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
 
     /// Ink for this face: the per-card default, or whatever the person chose
@@ -63,8 +67,7 @@ struct CardBackView: View {
     private var tapToReturn:   String { language == "zh-Hans" ? "点击返回" : "Tap to return" }
 
     var body: some View {
-        GeometryReader { geo in
-        let scale = CardTypeScale(width: geo.size.width)
+        let scale = CardTypeScale(width: cardWidth, scale: CGFloat(textScale))
         ZStack {
             // ── Card base: same daily gradient as the front.
             RoundedRectangle(cornerRadius: 32, style: .continuous)
@@ -161,6 +164,5 @@ struct CardBackView: View {
         }
         // Same ceiling as the front face: a card that must not change size.
         .dynamicTypeSize(CardTypeScale.dynamicTypeRange)
-        }
     }
 }

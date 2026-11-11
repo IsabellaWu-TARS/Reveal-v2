@@ -641,7 +641,8 @@ private struct DateDetailSheet: View {
     /// the calendar never drives the store's current card.
     private func flipCard(_ card: RevealCard) -> some View {
         let style = CardStyle.forCardId(card.id)
-        return ZStack {
+        return GeometryReader { geo in
+        ZStack {
             CardBackView(
                 card: card,
                 language: self.language,
@@ -650,7 +651,8 @@ private struct DateDetailSheet: View {
                 isFavorite: self.dailyCardStore.isFavorite(card.id),
                 showsFavoriteButton: false,
                 usesUserTint: self.isToday,
-                showsReturnHint: false
+                showsReturnHint: false,
+                cardWidth: geo.size.width
             )
             .opacity(self.isFlipped ? 1 : 0)
             .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
@@ -663,9 +665,11 @@ private struct DateDetailSheet: View {
                 isFavorite: self.dailyCardStore.isFavorite(card.id),
                 showsFavoriteButton: false,
                 usesUserTint: self.isToday,
-                headline: self.language == "zh-Hans" ? "经文" : "Verse"
+                headline: self.language == "zh-Hans" ? "经文" : "Verse",
+                cardWidth: geo.size.width
             )
             .opacity(self.isFlipped ? 0 : 1)
+        }
         }
         .aspectRatio(360.0 / 572.0, contentMode: .fit)
         .compositingGroup()

@@ -27,6 +27,7 @@ struct SettingsView: View {
     // Card text colour — see CardInk.swift. Stored as a hex string so the
     // choice survives relaunch and is readable by the card views.
     @AppStorage("cardInkMode") private var cardInkMode: String = CardInk.white.rawValue
+    @AppStorage("cardTextScale") private var cardTextScale: Double = CardTypeScale.defaultScale
     @AppStorage("cardInkCustomHex") private var cardInkHex: String = "FFFFFF"
     @State private var customInkColor: Color = .white
 
@@ -202,6 +203,33 @@ struct SettingsView: View {
                                         }
 
                                         Text(hintText)
+                                            .font(.system(size: 12, weight: .light))
+                                            .foregroundColor(Color(hex: "6B6B6B"))
+                                    }
+                                }
+
+                                // Card Text Size
+                                SettingsCard {
+                                    VStack(alignment: .leading, spacing: 14) {
+                                        HStack(spacing: 8) {
+                                            Text("Aa")
+                                                .font(.system(size: 14, weight: .semibold, design: .serif))
+                                                .foregroundColor(Design.accent)
+                                            Text(dailyCardStore.appLanguage == "zh-Hans" ? "卡片字号" : "Card Text Size")
+                                                .font(.system(size: 16, weight: .semibold)).foregroundColor(.primary)
+                                        }
+
+                                        Picker("", selection: $cardTextScale) {
+                                            ForEach(CardTextSize.allCases) { size in
+                                                Text(size.title(language: dailyCardStore.appLanguage))
+                                                    .tag(size.rawValue)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+
+                                        Text(dailyCardStore.appLanguage == "zh-Hans"
+                                             ? "只改卡片里的字号，卡片本身大小不变。"
+                                             : "Changes the type inside the card only — the card itself keeps its size.")
                                             .font(.system(size: 12, weight: .light))
                                             .foregroundColor(Color(hex: "6B6B6B"))
                                     }

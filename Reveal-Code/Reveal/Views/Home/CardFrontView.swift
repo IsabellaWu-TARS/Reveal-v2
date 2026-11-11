@@ -43,6 +43,13 @@ struct CardFrontView: View {
     }
 
     @AppStorage("cardInkMode") private var inkModeRaw: String = CardInk.white.rawValue
+    @AppStorage("cardTextScale") private var textScale: Double = CardTypeScale.defaultScale
+
+    /// The card's on-screen width. The parent already gives the card an exact
+    /// frame, so reading it here is cheaper and steadier than wrapping the face
+    /// in a GeometryReader — a second reader inside the flip container was
+    /// enough to start a layout cycle on device.
+    var cardWidth: CGFloat = 390
     @AppStorage("cardInkCustomHex") private var inkCustomHex: String = "FFFFFF"
 
     /// Ink for this face: the per-card default, or whatever the person chose
@@ -81,8 +88,7 @@ struct CardFrontView: View {
     }
 
     var body: some View {
-        GeometryReader { geo in
-        let scale = CardTypeScale(width: geo.size.width)
+        let scale = CardTypeScale(width: cardWidth, scale: CGFloat(textScale))
         ZStack {
             // ── Card base: rounded rectangle filled with the day's
             //    gradient (top → bottom, 3 stops). Text ink follows the
@@ -148,7 +154,6 @@ struct CardFrontView: View {
                         .padding(14)
                 }
             }
-        }
         }
         // Type now follows the system size (the verse and reference are
         // relative fonts), but only as far as .xxLarge — past that it would

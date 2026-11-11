@@ -164,7 +164,7 @@ struct HomeView: View {
                 // y-positions so they cannot overlap the card, and the card
                 // height (60% of screen) leaves ~20% above and below empty.
                 if let card = dailyCardStore.currentCard {
-                    cardContent(card: card)
+                    cardContent(card: card, width: cardW)
                         .frame(width: cardW, height: cardH)
                         .position(x: screenW / 2, y: screenH / 2)
                 } else {
@@ -297,7 +297,7 @@ struct HomeView: View {
 
     // MARK: - Card Content
     @ViewBuilder
-    private func cardContent(card: RevealCard) -> some View {
+    private func cardContent(card: RevealCard, width cardW: CGFloat) -> some View {
         // Pick a gradient deterministically from the card id (not the
         // calendar date). Two consequences:
         //   • Each card gets its own colour, so flipping through the
@@ -319,7 +319,8 @@ struct HomeView: View {
                 language: dailyCardStore.appLanguage,
                 style: style,
                 onFavorite: { dailyCardStore.toggleFavorite(card.id) },
-                isFavorite: dailyCardStore.isFavorite(card.id)
+                isFavorite: dailyCardStore.isFavorite(card.id),
+                cardWidth: cardW
             )
             .opacity(dailyCardStore.isFront ? 0 : 1)
             .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
@@ -331,7 +332,8 @@ struct HomeView: View {
                 language: dailyCardStore.appLanguage,
                 style: style,
                 onFavorite: { dailyCardStore.toggleFavorite(card.id) },
-                isFavorite: dailyCardStore.isFavorite(card.id)
+                isFavorite: dailyCardStore.isFavorite(card.id),
+                cardWidth: cardW
             )
             .opacity(dailyCardStore.isFront ? 1 : 0)
         }
@@ -432,11 +434,13 @@ struct HomeView: View {
         let content = Group {
             if front {
                 CardFrontView(card: card, language: lang, style: style,
-                              onFavorite: {}, isFavorite: false, showsFavoriteButton: false)
+                              onFavorite: {}, isFavorite: false, showsFavoriteButton: false,
+                              cardWidth: 360)
             } else {
                 CardBackView(card: card, language: lang, style: style,
                              onFavorite: {}, isFavorite: false,
-                             showsFavoriteButton: false, showsReturnHint: false)
+                             showsFavoriteButton: false, showsReturnHint: false,
+                             cardWidth: 360)
             }
         }
         // Same 0.63 aspect as the on-screen card, at 3x for a crisp export.
